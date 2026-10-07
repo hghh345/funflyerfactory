@@ -86,6 +86,8 @@
 <div class="burst" id="oBurst"></div>
 </div><div class="tabs" id="oTabs"></div></div></div>
 </div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script>
 (function(){
 var P={
@@ -121,7 +123,127 @@ var t=document.getElementById("oTabs");t.style.display=E.tabs.checked?"flex":"no
 for(var i=0;i<8;i++){var d=document.createElement("div");d.className="tab";d.textContent=E.tab.value;t.appendChild(d)}
 }
 document.querySelectorAll("[data-t]").forEach(function(b){b.addEventListener("click",function(){load(b.getAttribute("data-t"))})});
-document.getElementById("print").addEventListener("click",function(){window.print()});
+document.getElementById("print").addEventListener("click", async function(){
+  var button = this;
+  var originalText = button.textContent;
+
+  button.disabled = true;
+  button.textContent = "Making PDF...";
+  say("Making your PDF...");
+
+  try {
+    var z = +E.sz.value;
+
+    /*
+      PDF dimensions in points.
+      72 points = 1 inch.
+    */
+    var sizes = [
+      [612, 792],    // Letter 8.5 × 11
+      [576, 576],    // Square 8 × 8
+      [576, 720],    // 4:5
+      [576, 1024]    // 9:16
+    ];
+
+    var size = sizes[z];
+    var W = size[0];
+    var H = size[1];
+
+    /*
+      Clone the flyer so the user's actual flyer isn't
+      temporarily resized or moved while exporting.
+    */
+    var source = document.getElementById("fl");
+
+    var clone = source.cloneNode(true);
+
+    clone.style.position = "fixed";
+    clone.style.left = "-10000px";
+    clone.style.top = "0";
+    clone.style.margin = "0";
+    clone.style.width = W + "px";
+    clone.style.height = H + "px";
+    clone.style.maxWidth = "none";
+    clone.style.aspectRatio = "auto";
+    clone.style.boxShadow = "none";
+    clone.style.overflow = "hidden";
+
+    /*
+      Remove selection outline from the exported version.
+    */
+    clone.querySelectorAll(".sel").forEach(function(el){
+      el.classList.remove("sel");
+    });
+
+    document.body.appendChild(clone);
+
+    /*
+      Give the browser a moment to render the cloned flyer.
+    */
+    await new Promise(function(resolve){
+      requestAnimationFrame(function(){
+        requestAnimationFrame(resolve);
+      });
+    });
+
+    var canvas = await html2canvas(clone, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: W,
+      height: H,
+      windowWidth: W,
+      windowHeight: H
+    });
+
+    clone.remove();
+
+    /*
+      jsPDF uses points.
+      The flyer is already rendered at the exact PDF
+      page dimensions, so we put the canvas at 0,0
+      and make it exactly fill the page.
+    */
+    var jsPDF = window.jspdf.jsPDF;
+
+    var pdf = new jsPDF({
+      orientation: W >= H ? "landscape" : "portrait",
+      unit: "pt",
+      format: [W, H],
+      compress: true
+    });
+
+    pdf.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      0,
+      0,
+      W,
+      H,
+      undefined,
+      "FAST"
+    );
+
+    var names = [
+      "letter",
+      "square",
+      "4x5",
+      "story"
+    ];
+
+    pdf.save("funflyer-" + names[z] + ".pdf");
+
+    say("PDF saved!");
+
+  } catch (err) {
+    console.error(err);
+    say("Could not make the PDF. Try Save as PNG instead.");
+  }
+
+  button.disabled = false;
+  button.textContent = originalText;
+});
 document.getElementById("file").addEventListener("change",function(e){
 var f=e.target.files[0];if(!f)return;var u=URL.createObjectURL(f),im=new Image();
 im.onload=function(){var m=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pic=c.toDataURL("image/jpeg",.88);URL.revokeObjectURL(u);draw()};
@@ -254,6 +376,7 @@ document.getElementById("editJump").addEventListener("click",function(){
 
 load("show");
 })();
+
 </script>
 <link rel="stylesheet" href="flyer.css">
 </body>
