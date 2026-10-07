@@ -87,7 +87,7 @@
 </div><div class="tabs" id="oTabs"></div></div></div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
 (function(){
 var P={
@@ -124,6 +124,7 @@ for(var i=0;i<8;i++){var d=document.createElement("div");d.className="tab";d.tex
 }
 document.querySelectorAll("[data-t]").forEach(function(b){b.addEventListener("click",function(){load(b.getAttribute("data-t"))})});
 document.getElementById("print").addEventListener("click", async function(){
+
   var button = this;
   var originalText = button.textContent;
 
@@ -133,87 +134,97 @@ document.getElementById("print").addEventListener("click", async function(){
 
   try {
 
-    /* Make sure the libraries actually loaded */
+    /* Make sure html2canvas loaded */
     if (typeof html2canvas === "undefined") {
-      throw new Error("html2canvas did not load");
+      throw new Error("html2canvas is not loaded");
     }
 
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      throw new Error("jsPDF did not load");
+    /* Get jsPDF */
+    if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
+      throw new Error("jsPDF is not loaded");
     }
 
+    var jsPDF = window.jspdf.jsPDF;
+
+    /* Current flyer size */
     var z = +E.sz.value;
 
     /*
-      PDF page sizes in points.
-      These exactly match the four flyer proportions.
+      PDF page dimensions in points.
+      72 points = 1 inch.
     */
     var sizes = [
-      [612, 792],   // Letter 8.5 × 11
-      [576, 576],   // Square
-      [576, 720],   // 4:5
-      [576, 1024]   // 9:16
+      [612, 792],    // Letter 8.5 × 11
+      [576, 576],    // Square 8 × 8
+      [576, 720],    // 4:5
+      [576, 1024]    // Story 9:16
     ];
 
-    var size = sizes[z];
-    var W = size[0];
-    var H = size[1];
+    var W = sizes[z][0];
+    var H = sizes[z][1];
 
+    /* Copy the flyer */
     var source = document.getElementById("fl");
-
-    /* Make a temporary copy of the flyer */
     var clone = source.cloneNode(true);
 
+    /*
+      Put the copy far offscreen so the user never sees it.
+    */
     clone.style.position = "fixed";
     clone.style.left = "-10000px";
     clone.style.top = "0";
-    clone.style.margin = "0";
     clone.style.width = W + "px";
     clone.style.height = H + "px";
     clone.style.maxWidth = "none";
     clone.style.aspectRatio = "auto";
+    clone.style.margin = "0";
     clone.style.boxShadow = "none";
-    clone.style.border = "none";
     clone.style.overflow = "hidden";
 
-    /* Remove the pink selection outline */
+    /* Remove selection outline */
     clone.querySelectorAll(".sel").forEach(function(el){
       el.classList.remove("sel");
     });
 
     document.body.appendChild(clone);
 
-    /* Give the browser time to render the clone */
+    /*
+      Let the browser render the copied flyer first.
+    */
     await new Promise(function(resolve){
       requestAnimationFrame(function(){
         requestAnimationFrame(resolve);
       });
     });
 
-    /* Turn flyer into an image */
+    /*
+      Turn the flyer into a canvas.
+    */
     var canvas = await html2canvas(clone, {
       backgroundColor: null,
       scale: 2,
       useCORS: true,
       logging: false,
       width: W,
-      height: H,
-      windowWidth: W,
-      windowHeight: H
+      height: H
     });
 
     clone.remove();
 
-    /* Create PDF */
-    var jsPDF = window.jspdf.jsPDF;
-
+    /*
+      Create a PDF whose page is EXACTLY the same
+      aspect ratio as the flyer.
+    */
     var pdf = new jsPDF({
-      orientation: W >= H ? "landscape" : "portrait",
+      orientation: W > H ? "landscape" : "portrait",
       unit: "pt",
       format: [W, H],
       compress: true
     });
 
+    /*
+      Put the flyer edge-to-edge on the PDF.
+    */
     pdf.addImage(
       canvas.toDataURL("image/png"),
       "PNG",
@@ -238,13 +249,15 @@ document.getElementById("print").addEventListener("click", async function(){
 
   } catch (err) {
 
-    console.error(err);
+    console.error("PDF ERROR:", err);
+
     say("Could not make the PDF. Try Save as PNG instead.");
 
   }
 
   button.disabled = false;
   button.textContent = originalText;
+
 });
     
 document.getElementById("file").addEventListener("change",function(e){
