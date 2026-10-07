@@ -158,11 +158,23 @@ document.getElementById("print").addEventListener("click", function(){
     n.querySelectorAll(".sel").forEach(function(e){
       e.classList.remove("sel");
     });
+    n.querySelectorAll("[data-d]").forEach(function(e){
+  e.style.zIndex="20";
+});
 
-    n.style.width = W + "px";
-    n.style.height = H + "px";
-    n.style.aspectRatio = "auto";
-    n.style.boxShadow = "none";
+var exportedPic=n.querySelector(".pic");
+
+if(exportedPic){
+  exportedPic.style.position="relative";
+  exportedPic.style.zIndex="5";
+}
+
+   n.style.width=W+"px";
+n.style.height=H+"px";
+n.style.aspectRatio="auto";
+n.style.boxShadow="none";
+n.style.position="relative";
+n.style.overflow="hidden";
 
     /*
       Collect all CSS, including flyer.css.
