@@ -87,7 +87,7 @@
 </div><div class="tabs" id="oTabs"></div></div></div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 (function(){
 var P={
@@ -132,29 +132,36 @@ document.getElementById("print").addEventListener("click", async function(){
   say("Making your PDF...");
 
   try {
+
+    /* Make sure the libraries actually loaded */
+    if (typeof html2canvas === "undefined") {
+      throw new Error("html2canvas did not load");
+    }
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error("jsPDF did not load");
+    }
+
     var z = +E.sz.value;
 
     /*
-      PDF dimensions in points.
-      72 points = 1 inch.
+      PDF page sizes in points.
+      These exactly match the four flyer proportions.
     */
     var sizes = [
-      [612, 792],    // Letter 8.5 × 11
-      [576, 576],    // Square 8 × 8
-      [576, 720],    // 4:5
-      [576, 1024]    // 9:16
+      [612, 792],   // Letter 8.5 × 11
+      [576, 576],   // Square
+      [576, 720],   // 4:5
+      [576, 1024]   // 9:16
     ];
 
     var size = sizes[z];
     var W = size[0];
     var H = size[1];
 
-    /*
-      Clone the flyer so the user's actual flyer isn't
-      temporarily resized or moved while exporting.
-    */
     var source = document.getElementById("fl");
 
+    /* Make a temporary copy of the flyer */
     var clone = source.cloneNode(true);
 
     clone.style.position = "fixed";
@@ -166,26 +173,24 @@ document.getElementById("print").addEventListener("click", async function(){
     clone.style.maxWidth = "none";
     clone.style.aspectRatio = "auto";
     clone.style.boxShadow = "none";
+    clone.style.border = "none";
     clone.style.overflow = "hidden";
 
-    /*
-      Remove selection outline from the exported version.
-    */
+    /* Remove the pink selection outline */
     clone.querySelectorAll(".sel").forEach(function(el){
       el.classList.remove("sel");
     });
 
     document.body.appendChild(clone);
 
-    /*
-      Give the browser a moment to render the cloned flyer.
-    */
+    /* Give the browser time to render the clone */
     await new Promise(function(resolve){
       requestAnimationFrame(function(){
         requestAnimationFrame(resolve);
       });
     });
 
+    /* Turn flyer into an image */
     var canvas = await html2canvas(clone, {
       backgroundColor: null,
       scale: 2,
@@ -199,12 +204,7 @@ document.getElementById("print").addEventListener("click", async function(){
 
     clone.remove();
 
-    /*
-      jsPDF uses points.
-      The flyer is already rendered at the exact PDF
-      page dimensions, so we put the canvas at 0,0
-      and make it exactly fill the page.
-    */
+    /* Create PDF */
     var jsPDF = window.jspdf.jsPDF;
 
     var pdf = new jsPDF({
@@ -237,13 +237,16 @@ document.getElementById("print").addEventListener("click", async function(){
     say("PDF saved!");
 
   } catch (err) {
+
     console.error(err);
     say("Could not make the PDF. Try Save as PNG instead.");
+
   }
 
   button.disabled = false;
   button.textContent = originalText;
 });
+    
 document.getElementById("file").addEventListener("change",function(e){
 var f=e.target.files[0];if(!f)return;var u=URL.createObjectURL(f),im=new Image();
 im.onload=function(){var m=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pic=c.toDataURL("image/jpeg",.88);URL.revokeObjectURL(u);draw()};
