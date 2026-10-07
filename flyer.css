@@ -44,14 +44,46 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tab{flex:1;border-left:.4cqw dashed var(--fg);writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.7cqw;font-weight:bold;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:.5cqw}
 .tab:last-child{border-left-width:0}
 .f0{font-family:'Comic Neue',sans-serif}.f1{font-family:Impact,'Arial Black',sans-serif}.f2{font-family:Papyrus,fantasy,serif}.f3{font-family:'Times New Roman',Times,serif}.f4{font-family:'Courier New',monospace}.f5{font-family:'Trebuchet MS',Verdana,sans-serif}
-@media print{body{background:#fff}.win{border:0;box-shadow:none;margin:0;max-width:none}.title,.top,.ctl,.pv>:not(.flyer){display:none}.wrap{padding:0}.flyer{width:7.5in;box-shadow:none}}
 .pic[hidden]{display:none}
 .pic{display:block;object-fit:cover;width:66cqw;height:34cqw;border:1.2cqw solid #fff;outline:.3cqw solid var(--fg);box-shadow:1cqw 1cqw 0 rgba(0,0,0,.45);transform:rotate(-2deg)}
 .z1 .head{font-size:10.5cqw}.z1 .sub{font-size:5cqw}.z1 .bodytxt{font-size:3.8cqw}.z1 .when{font-size:4.6cqw}.z1 .dings{display:none}.z1 .burst{top:12cqw;width:22cqw;height:22cqw;font-size:4.4cqw;padding:4cqw}.z1 .tabs{height:14cqw}.z1 .pic{width:50cqw;height:23cqw}
 .z2 .pic{height:36cqw}.z3 .pic{width:70cqw;height:52cqw}.z3 .burst{top:40cqw}
-[data-d]{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-.sel{outline:.5cqw dashed #f0f;outline-offset:.8cqw}
-.clip{position:absolute;left:38cqw;top:34cqw;width:22cqw;height:22cqw;overflow:visible}
+[data-d]{
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  pointer-events:auto;
+}
+
+[data-d]:active{
+  cursor:grabbing;
+}
+
+.in > [data-d]{
+  z-index:20;
+  pointer-events:auto;
+}
+
+.in > [data-d] *{
+  pointer-events:none;
+}
+
+.sel{
+  outline:.5cqw dashed #f0f;
+  outline-offset:.8cqw;
+}
+
+.clip{
+  position:absolute;
+  left:38cqw;
+  top:34cqw;
+  width:22cqw;
+  height:22cqw;
+  overflow:visible;
+  z-index:20;
+  pointer-events:auto;
+}
 .w4{background:linear-gradient(#fff 0%,#7aa7ff 42%,#0a1f55 50%,#8fc0ff 58%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.35cqw #002;paint-order:stroke fill;filter:drop-shadow(.7cqw .7cqw 0 rgba(0,0,0,.6))}
 .w5{background:linear-gradient(#ffe600,#ff7a00 55%,#d40000);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.4cqw #3b0000;paint-order:stroke fill;filter:drop-shadow(.6cqw .6cqw 0 #000)}
 .w6{color:#fff;-webkit-text-stroke:1.3cqw var(--ac);paint-order:stroke fill;filter:drop-shadow(.8cqw .8cqw 0 #000)}
@@ -66,8 +98,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 input[type=range]{width:100%}
 .burst,.z1 .burst{word-break:normal;padding:3cqw;font-size:4.2cqw}
 @media (max-width:660px){.wrap{grid-template-columns:minmax(0,1fr)}.top,.pv,.ctl{grid-column:1}.pv{grid-row:2}.ctl{grid-row:3}.flyer{width:min(100%,300px)}}
-@media print{.marq{display:none}.sel{outline:0}.flyer{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-@media print{.flyer.z1{width:7in}.flyer.z2{width:6.5in}.flyer.z3{width:5.5in}}
 
 /* ---------- collapsible control sections ---------- */
 details.sec{margin:0 0 8px;border:1px solid var(--edge)}
@@ -110,3 +140,79 @@ details.sec>.secbody{padding:0 8px 8px}
   body{padding-bottom:78px}
 }
 @media print{.actionbar{display:none}}
+@media print{
+  @page{
+    margin:0;
+  }
+
+  html,
+  body{
+    margin:0;
+    padding:0;
+    background:#fff;
+  }
+
+  .win{
+    margin:0;
+    padding:0;
+    max-width:none;
+    border:0;
+    box-shadow:none;
+    background:#fff;
+  }
+
+  .title,
+  .marq,
+  .top,
+  .ctl,
+  .actionbar,
+  #msg,
+  #outimg{
+    display:none !important;
+  }
+
+  .wrap{
+    display:block;
+    padding:0;
+    margin:0;
+  }
+
+  .pv{
+    display:block;
+    width:auto;
+    margin:0;
+    padding:0;
+  }
+
+  .flyer{
+    margin:0;
+    box-shadow:none;
+    max-width:none;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  .flyer.z0{
+    width:8.5in;
+    height:11in;
+  }
+
+  .flyer.z1{
+    width:8in;
+    height:8in;
+  }
+
+  .flyer.z2{
+    width:8in;
+    height:10in;
+  }
+
+  .flyer.z3{
+    width:8in;
+    height:14.222in;
+  }
+
+  .sel{
+    outline:none !important;
+  }
+}

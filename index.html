@@ -7,12 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
-<script src="flyer.js"></script>
-=======
-
-
->>>>>>> 4bffea22e851ef0e2e5039a220299d22493cfe57
 </head>
 <body>
 <div class="win">
@@ -138,7 +132,25 @@ function say(t){msg.textContent=t}
 function savePng(){
 var z=PX[+E.sz.value],W=z[0],H=z[1],n=fl.cloneNode(true);
 n.removeAttribute("id");n.querySelectorAll(".sel").forEach(function(e){e.classList.remove("sel")});n.style.width=W+"px";n.style.height=H+"px";n.style.aspectRatio="auto";n.style.boxShadow="none";
-var css=document.querySelector("style").textContent.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+var css="";
+
+document.querySelectorAll("style").forEach(function(s){
+  css+=s.textContent+"\n";
+});
+
+var sheets=document.querySelectorAll('link[rel="stylesheet"]');
+
+sheets.forEach(function(link){
+  try{
+    if(link.sheet && link.sheet.cssRules){
+      for(var i=0;i<link.sheet.cssRules.length;i++){
+        css+=link.sheet.cssRules[i].cssText+"\n";
+      }
+    }
+  }catch(e){}
+});
+
+css=css.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>'+css+'</style>'+new XMLSerializer().serializeToString(n)+'</div></foreignObject></svg>';
 var im=new Image();say("Making your PNG...");
 im.onload=function(){try{var c=document.createElement("canvas");c.width=W;c.height=H;c.getContext("2d").drawImage(im,0,0);
@@ -178,7 +190,37 @@ g("siz").addEventListener("input",function(){if(sel){T[sel].s=this.value/100;app
 g("rst").addEventListener("click",function(){if(sel){T[sel]={x:0,y:0,r:0,s:1};applyT(sel);select(sel)}});
 g("del").addEventListener("click",function(){if(sel&&sel.charAt(0)=="c"){g(sel).remove();delete T[sel];select(null)}});
 var dr=null;
-fl.addEventListener("pointerdown",function(e){var el=e.target.closest("[data-d]");if(!el){select(null);return}select(el.id);var t=T[el.id];dr={id:el.id,px:e.clientX,py:e.clientY,x:t.x,y:t.y};try{el.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+fl.addEventListener("pointerdown",function(e){
+  var target=e.target;
+  var el=null;
+
+  if(target && target.closest){
+    el=target.closest("[data-d]");
+  }
+
+  if(!el || !fl.contains(el)){
+    select(null);
+    return;
+  }
+
+  select(el.id);
+
+  var t=T[el.id];
+
+  dr={
+    id:el.id,
+    px:e.clientX,
+    py:e.clientY,
+    x:t.x,
+    y:t.y
+  };
+
+  try{
+    el.setPointerCapture(e.pointerId);
+  }catch(x){}
+
+  e.preventDefault();
+});
 fl.addEventListener("pointermove",function(e){if(!dr)return;var u=fl.getBoundingClientRect().width/100,t=T[dr.id];t.x=dr.x+(e.clientX-dr.px)/u;t.y=dr.y+(e.clientY-dr.py)/u;applyT(dr.id)});
 function up(){dr=null}fl.addEventListener("pointerup",up);fl.addEventListener("pointercancel",up);
 select(null);
