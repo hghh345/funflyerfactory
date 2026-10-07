@@ -134,42 +134,39 @@ document.getElementById("print").addEventListener("click", async function(){
 
   try {
 
-    /* Make sure html2canvas loaded */
     if (typeof html2canvas === "undefined") {
       throw new Error("html2canvas is not loaded");
     }
 
-    /* Get jsPDF */
     if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
       throw new Error("jsPDF is not loaded");
     }
 
     var jsPDF = window.jspdf.jsPDF;
 
-    /* Current flyer size */
     var z = +E.sz.value;
 
     /*
-      PDF page dimensions in points.
-      72 points = 1 inch.
+      These are the actual flyer pixel dimensions
+      already used by your PNG exporter.
     */
     var sizes = [
-      [612, 792],    // Letter 8.5 × 11
-      [576, 576],    // Square 8 × 8
-      [576, 720],    // 4:5
-      [576, 1024]    // Story 9:16
+      [1275, 1650],   // Letter
+      [800, 800],     // Square
+      [1080, 1350],   // 4:5
+      [1080, 1920]    // Story
     ];
 
     var W = sizes[z][0];
     var H = sizes[z][1];
 
-    /* Copy the flyer */
+    /*
+      Clone the flyer at its REAL export dimensions.
+      This keeps all your cqw-based styling intact.
+    */
     var source = document.getElementById("fl");
     var clone = source.cloneNode(true);
 
-    /*
-      Put the copy far offscreen so the user never sees it.
-    */
     clone.style.position = "fixed";
     clone.style.left = "-10000px";
     clone.style.top = "0";
@@ -179,18 +176,21 @@ document.getElementById("print").addEventListener("click", async function(){
     clone.style.aspectRatio = "auto";
     clone.style.margin = "0";
     clone.style.boxShadow = "none";
-    clone.style.overflow = "hidden";
 
-    /* Remove selection outline */
+    /*
+      IMPORTANT:
+      Don't remove the border.
+      Don't modify the flyer classes.
+      Don't modify the burst.
+      Don't modify the flyer contents.
+    */
+
     clone.querySelectorAll(".sel").forEach(function(el){
       el.classList.remove("sel");
     });
 
     document.body.appendChild(clone);
 
-    /*
-      Let the browser render the copied flyer first.
-    */
     await new Promise(function(resolve){
       requestAnimationFrame(function(){
         requestAnimationFrame(resolve);
@@ -198,40 +198,57 @@ document.getElementById("print").addEventListener("click", async function(){
     });
 
     /*
-      Turn the flyer into a canvas.
+      Render the flyer exactly as it appears.
     */
     var canvas = await html2canvas(clone, {
       backgroundColor: null,
-      scale: 2,
+      scale: 1,
       useCORS: true,
       logging: false,
       width: W,
-      height: H
+      height: H,
+      windowWidth: W,
+      windowHeight: H
     });
 
     clone.remove();
 
     /*
-      Create a PDF whose page is EXACTLY the same
-      aspect ratio as the flyer.
+      Use a PDF page with the same aspect ratio.
+      The physical size is chosen to match the flyer:
+      
+      Letter = 8.5 × 11
+      Square = 8 × 8
+      4:5 = 8 × 10
+      Story = 6 × 10.6667
     */
+    var pdfSizes = [
+      [8.5, 11],
+      [8, 8],
+      [8, 10],
+      [6, 10.6666667]
+    ];
+
+    var pw = pdfSizes[z][0];
+    var ph = pdfSizes[z][1];
+
     var pdf = new jsPDF({
-      orientation: W > H ? "landscape" : "portrait",
-      unit: "pt",
-      format: [W, H],
+      orientation: ph > pw ? "portrait" : "landscape",
+      unit: "in",
+      format: [pw, ph],
       compress: true
     });
 
     /*
-      Put the flyer edge-to-edge on the PDF.
+      Put the rendered flyer edge-to-edge.
     */
     pdf.addImage(
       canvas.toDataURL("image/png"),
       "PNG",
       0,
       0,
-      W,
-      H,
+      pw,
+      ph,
       undefined,
       "FAST"
     );
