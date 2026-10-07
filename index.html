@@ -15,9 +15,9 @@ body{margin:0;background:var(--desk);color:var(--ink);font:13px/1.35 Tahoma,Verd
 .win{max-width:1000px;margin:10px auto;border:2px solid var(--bar1);border-radius:8px 8px 0 0;background:var(--panel);box-shadow:4px 4px 0 rgba(0,0,0,.35)}
 .title{background:linear-gradient(var(--bar2),var(--bar1));color:#fff;font:bold 15px Trebuchet MS,Tahoma,sans-serif;padding:6px 10px;border-radius:6px 6px 0 0;text-shadow:1px 1px 0 #002;display:flex;justify-content:space-between}
 .title i{font-style:normal;letter-spacing:4px}
-.wrap{display:flex;gap:12px;padding:10px;flex-wrap:wrap}
-.ctl{flex:1 1 280px;min-width:0}
-.pv{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.wrap{display:grid;grid-template-columns:minmax(280px,1fr) minmax(340px,1.2fr);gap:12px;padding:10px}
+.top,.ctl{grid-column:1;min-width:0}.top{grid-row:1}.ctl{grid-row:2}
+.pv{grid-column:2;grid-row:1/3;align-self:start;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px}
 fieldset{border:1px solid var(--edge);margin:0 0 8px;padding:6px 8px}
 legend{font-weight:bold;padding:0 4px}
 label{display:block;margin:4px 0 0}
@@ -51,7 +51,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tab{flex:1;border-left:.4cqw dashed var(--fg);writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.7cqw;font-weight:bold;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:.5cqw}
 .tab:last-child{border-left-width:0}
 .f0{font-family:'Comic Sans MS','Comic Sans',cursive,sans-serif}.f1{font-family:Impact,'Arial Black',sans-serif}.f2{font-family:Papyrus,fantasy,serif}.f3{font-family:'Times New Roman',Times,serif}.f4{font-family:'Courier New',monospace}.f5{font-family:'Trebuchet MS',Verdana,sans-serif}
-@media print{body{background:#fff}.win{border:0;box-shadow:none;margin:0;max-width:none}.title,.ctl,.pv>:not(.flyer){display:none}.wrap{padding:0}.flyer{width:7.5in;box-shadow:none}}
+@media print{body{background:#fff}.win{border:0;box-shadow:none;margin:0;max-width:none}.title,.top,.ctl,.pv>:not(.flyer){display:none}.wrap{padding:0}.flyer{width:7.5in;box-shadow:none}}
 .pic[hidden]{display:none}
 .pic{display:block;object-fit:cover;width:66cqw;height:34cqw;border:1.2cqw solid #fff;outline:.3cqw solid var(--fg);box-shadow:1cqw 1cqw 0 rgba(0,0,0,.45);transform:rotate(-2deg)}
 .z1 .head{font-size:10.5cqw}.z1 .sub{font-size:5cqw}.z1 .bodytxt{font-size:3.8cqw}.z1 .when{font-size:4.6cqw}.z1 .dings{display:none}.z1 .burst{top:12cqw;width:22cqw;height:22cqw;font-size:4.4cqw;padding:4cqw}.z1 .tabs{height:14cqw}.z1 .pic{width:50cqw;height:23cqw}
@@ -71,7 +71,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media (prefers-reduced-motion:reduce){.marq div{animation:none;padding-left:0;white-space:normal;display:block;text-align:center}}
 .lib{display:flex;flex-wrap:wrap;gap:2px}.lib button{width:44px;height:44px;padding:3px;margin:0}.lib svg{width:100%;height:100%;display:block}
 input[type=range]{width:100%}
-@media (max-width:660px){.pv{order:-1}}
+@media (max-width:660px){.wrap{grid-template-columns:minmax(0,1fr)}.top,.pv,.ctl{grid-column:1}.pv{grid-row:2}.ctl{grid-row:3}.flyer{width:min(100%,300px)}}
 @media print{.marq{display:none}.sel{outline:0}.flyer{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media print{.flyer.z1{width:7in}.flyer.z2{width:6.5in}.flyer.z3{width:5.5in}}
 </style>
@@ -81,13 +81,15 @@ input[type=range]{width:100%}
 <div class="title"><span>funflyerfactory</span><i>_ ▫ x</i></div>
 <div class="marq"><div>use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers!</div></div>
 <div class="wrap">
-<div class="ctl">
+<div class="top">
 <fieldset><legend>Start from</legend>
 <button data-t="show">Basement show</button><button data-t="cat">Lost cat</button><button data-t="sale">Yard sale</button><button data-t="party">Dance party</button>
 </fieldset>
 <fieldset><legend>Size</legend>
 <select id="sz" aria-label="Flyer size"><option value="0">Print: letter, 8.5 x 11 in</option><option value="1">Square, 800 x 800 px</option><option value="2">Vertical 4:5, 1080 x 1350 px</option><option value="3">Story 9:16, 1080 x 1920 px</option></select>
 </fieldset>
+</div>
+<div class="ctl">
 <fieldset><legend>Words</legend>
 <label>Big headline<input type="text" id="head" maxlength="30"></label>
 <label>Sticker (leave empty for none)<input type="text" id="burst" maxlength="14"></label>
