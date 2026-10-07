@@ -122,7 +122,7 @@ var t=document.getElementById("oTabs");t.style.display=E.tabs.checked?"flex":"no
 for(var i=0;i<8;i++){var d=document.createElement("div");d.className="tab";d.textContent=E.tab.value;t.appendChild(d)}
 }
 document.querySelectorAll("[data-t]").forEach(function(b){b.addEventListener("click",function(){load(b.getAttribute("data-t"))})});
-document.getElementById("print").addEventListener("click", async function(){
+document.getElementById("print").addEventListener("click", function(){
 
   var button = this;
   var originalText = button.textContent;
@@ -133,146 +133,184 @@ document.getElementById("print").addEventListener("click", async function(){
 
   try {
 
-    if (typeof html2canvas === "undefined") {
-      throw new Error("html2canvas is not loaded");
-    }
-
     if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
       throw new Error("jsPDF is not loaded");
     }
 
     var jsPDF = window.jspdf.jsPDF;
 
+    /*
+      These are the exact pixel dimensions already
+      used by Save as PNG.
+    */
     var z = +E.sz.value;
+    var size = PX[z];
+    var W = size[0];
+    var H = size[1];
 
     /*
-      These are the actual flyer pixel dimensions
-      already used by your PNG exporter.
+      Clone the flyer exactly like the PNG exporter.
     */
-    var sizes = [
-      [1275, 1650],   // Letter
-      [800, 800],     // Square
-      [1080, 1350],   // 4:5
-      [1080, 1920]    // Story
-    ];
+    var n = fl.cloneNode(true);
 
-    var W = sizes[z][0];
-    var H = sizes[z][1];
+    n.removeAttribute("id");
 
-    /*
-      Clone the flyer at its REAL export dimensions.
-      This keeps all your cqw-based styling intact.
-    */
-    var source = document.getElementById("fl");
-    var clone = source.cloneNode(true);
-
-    clone.style.position = "fixed";
-    clone.style.left = "-10000px";
-    clone.style.top = "0";
-    clone.style.width = W + "px";
-    clone.style.height = H + "px";
-    clone.style.maxWidth = "none";
-    clone.style.aspectRatio = "auto";
-    clone.style.margin = "0";
-    clone.style.boxShadow = "none";
-
-    /*
-      IMPORTANT:
-      Don't remove the border.
-      Don't modify the flyer classes.
-      Don't modify the burst.
-      Don't modify the flyer contents.
-    */
-
-    clone.querySelectorAll(".sel").forEach(function(el){
-      el.classList.remove("sel");
+    n.querySelectorAll(".sel").forEach(function(e){
+      e.classList.remove("sel");
     });
 
-    document.body.appendChild(clone);
-
-    await new Promise(function(resolve){
-      requestAnimationFrame(function(){
-        requestAnimationFrame(resolve);
-      });
-    });
+    n.style.width = W + "px";
+    n.style.height = H + "px";
+    n.style.aspectRatio = "auto";
+    n.style.boxShadow = "none";
 
     /*
-      Render the flyer exactly as it appears.
+      Collect all CSS, including flyer.css.
     */
-    var canvas = await html2canvas(clone, {
-      backgroundColor: null,
-      scale: 1,
-      useCORS: true,
-      logging: false,
-      width: W,
-      height: H,
-      windowWidth: W,
-      windowHeight: H
+    var css = "";
+
+    document.querySelectorAll("style").forEach(function(s){
+      css += s.textContent + "\n";
     });
 
-    clone.remove();
-
-    /*
-      Use a PDF page with the same aspect ratio.
-      The physical size is chosen to match the flyer:
-      
-      Letter = 8.5 × 11
-      Square = 8 × 8
-      4:5 = 8 × 10
-      Story = 6 × 10.6667
-    */
-    var pdfSizes = [
-      [8.5, 11],
-      [8, 8],
-      [8, 10],
-      [6, 10.6666667]
-    ];
-
-    var pw = pdfSizes[z][0];
-    var ph = pdfSizes[z][1];
-
-    var pdf = new jsPDF({
-      orientation: ph > pw ? "portrait" : "landscape",
-      unit: "in",
-      format: [pw, ph],
-      compress: true
-    });
-
-    /*
-      Put the rendered flyer edge-to-edge.
-    */
-    pdf.addImage(
-      canvas.toDataURL("image/png"),
-      "PNG",
-      0,
-      0,
-      pw,
-      ph,
-      undefined,
-      "FAST"
+    var sheets = document.querySelectorAll(
+      'link[rel="stylesheet"]'
     );
 
-    var names = [
-      "letter",
-      "square",
-      "4x5",
-      "story"
-    ];
+    sheets.forEach(function(link){
+      try{
+        if(link.sheet && link.sheet.cssRules){
+          for(var i=0;i<link.sheet.cssRules.length;i++){
+            css += link.sheet.cssRules[i].cssText + "\n";
+          }
+        }
+      }catch(e){}
+    });
 
-    pdf.save("funflyer-" + names[z] + ".pdf");
+    /*
+      Escape CSS for the SVG.
+    */
+    css = css
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;");
 
-    say("PDF saved!");
+    /*
+      Create the exact same SVG rendering used by
+      Save as PNG.
+    */
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg"' +
+      ' width="'+W+'" height="'+H+'">' +
+      '<foreignObject width="100%" height="100%">' +
+      '<div xmlns="http://www.w3.org/1999/xhtml">' +
+      '<style>'+css+'</style>' +
+      new XMLSerializer().serializeToString(n) +
+      '</div>' +
+      '</foreignObject>' +
+      '</svg>';
 
-  } catch (err) {
+    var im = new Image();
 
-    console.error("PDF ERROR:", err);
+    im.onload = function(){
+
+      try{
+
+        /*
+          Render SVG to a canvas.
+        */
+        var canvas = document.createElement("canvas");
+
+        canvas.width = W;
+        canvas.height = H;
+
+        var ctx = canvas.getContext("2d");
+
+        ctx.drawImage(im,0,0,W,H);
+
+        /*
+          PDF physical sizes.
+        */
+        var pdfSizes = [
+          [8.5,11],             // Letter
+          [8,8],                // Square
+          [8,10],               // 4:5
+          [6,10.6666667]        // Story
+        ];
+
+        var pw = pdfSizes[z][0];
+        var ph = pdfSizes[z][1];
+
+        var pdf = new jsPDF({
+          orientation: ph > pw ? "portrait" : "landscape",
+          unit: "in",
+          format: [pw,ph],
+          compress: true
+        });
+
+        /*
+          Put the flyer edge-to-edge on the PDF.
+        */
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          0,
+          0,
+          pw,
+          ph,
+          undefined,
+          "FAST"
+        );
+
+        var names = [
+          "letter",
+          "square",
+          "4x5",
+          "story"
+        ];
+
+        pdf.save(
+          "funflyer-" + names[z] + ".pdf"
+        );
+
+        say("PDF saved!");
+
+      }catch(err){
+
+        console.error("PDF RENDER ERROR:",err);
+        say("Could not make the PDF. Try Save as PNG instead.");
+
+      }
+
+      button.disabled = false;
+      button.textContent = originalText;
+
+    };
+
+    im.onerror = function(){
+
+      console.error("Could not render flyer SVG");
+
+      say("Could not make the PDF. Try Save as PNG instead.");
+
+      button.disabled = false;
+      button.textContent = originalText;
+
+    };
+
+    im.src =
+      "data:image/svg+xml;charset=utf-8," +
+      encodeURIComponent(svg);
+
+  }catch(err){
+
+    console.error("PDF ERROR:",err);
 
     say("Could not make the PDF. Try Save as PNG instead.");
 
-  }
+    button.disabled = false;
+    button.textContent = originalText;
 
-  button.disabled = false;
-  button.textContent = originalText;
+  }
 
 });
     
