@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,6 +77,48 @@ input[type=range]{width:100%}
 @media (max-width:660px){.wrap{grid-template-columns:minmax(0,1fr)}.top,.pv,.ctl{grid-column:1}.pv{grid-row:2}.ctl{grid-row:3}.flyer{width:min(100%,300px)}}
 @media print{.marq{display:none}.sel{outline:0}.flyer{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media print{.flyer.z1{width:7in}.flyer.z2{width:6.5in}.flyer.z3{width:5.5in}}
+
+/* ---------- collapsible control sections ---------- */
+details.sec{margin:0 0 8px;border:1px solid var(--edge)}
+details.sec>summary{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  list-style:none;cursor:pointer;font-weight:bold;padding:10px;margin:0;
+  -webkit-tap-highlight-color:transparent;
+}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"\25BE";font-size:11px;opacity:.7;transition:transform .18s}
+details.sec[open]>summary::after{transform:rotate(180deg)}
+details.sec>.secbody{padding:0 8px 8px}
+
+/* desktop: look like the old fieldset/legend, always open, not clickable */
+@media (min-width:661px){
+  details.sec{position:relative;padding:14px 8px 8px;margin:0 0 8px;border:1px solid var(--edge)}
+  details.sec>summary{
+    position:absolute;top:-.7em;left:6px;padding:0 4px;
+    background:var(--panel);font-weight:bold;
+    pointer-events:none;cursor:default;
+  }
+  details.sec>summary::after{display:none}
+  details.sec>.secbody{padding:0}
+}
+
+/* ---------- fixed mobile action bar ---------- */
+.actionbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+#editJump{display:none}
+@media (max-width:660px){
+  .actionbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:999;
+    margin:0;flex-wrap:nowrap;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));
+    background:var(--panel);
+    border-top:1px solid var(--edge);
+    box-shadow:0 -3px 12px rgba(0,0,0,.35);
+  }
+  .actionbar button{flex:1;margin:0;padding:11px 4px;font-size:13px}
+  #editJump{display:block}
+  body{padding-bottom:78px}
+}
+@media print{.actionbar{display:none}}
 </style>
 </head>
 <body>
@@ -94,7 +135,8 @@ input[type=range]{width:100%}
 </fieldset>
 </div>
 <div class="ctl">
-<fieldset><legend>Words</legend>
+
+<details class="sec" open><summary>Words</summary><div class="secbody">
 <label>Big headline<input type="text" id="head" maxlength="30"></label>
 <label>Sticker (leave empty for none)<input type="text" id="burst" maxlength="14"></label>
 <label>Subheading<input type="text" id="sub" maxlength="40"></label>
@@ -102,17 +144,25 @@ input[type=range]{width:100%}
 <label>When and where<textarea id="when" rows="2" maxlength="80"></textarea></label>
 <label><input type="checkbox" id="tabs" checked> Add tear-off tabs</label>
 <label>Tab text<input type="text" id="tab" maxlength="34"></label>
-</fieldset>
-<fieldset><legend>Clip art</legend><div class="lib" id="lib"></div></fieldset>
-<fieldset><legend>Selected item</legend><div id="selName"></div>
+</div></details>
+
+<details class="sec" open><summary>Clip art</summary><div class="secbody">
+<div class="lib" id="lib"></div>
+</div></details>
+
+<details class="sec" open><summary>Selected item</summary><div class="secbody">
+<div id="selName"></div>
 <label>Rotate<input type="range" id="rot" min="-180" max="180" value="0"></label>
 <label>Size<input type="range" id="siz" min="30" max="300" value="100"></label>
 <button id="rst" type="button">Reset item</button><button id="del" type="button">Delete clip art</button>
-<p class="hint">Drag anything on the flyer to move it.</p></fieldset>
-<fieldset><legend>Picture</legend>
+<p class="hint">Drag anything on the flyer to move it.</p>
+</div></details>
+
+<details class="sec" open><summary>Picture</summary><div class="secbody">
 <input type="file" id="file" accept="image/*" aria-label="Upload one image"><button id="nopic" type="button">Remove picture</button>
-</fieldset>
-<fieldset><legend>Looks</legend>
+</div></details>
+
+<details class="sec" open><summary>Looks</summary><div class="secbody">
 <label>Headline shape<select id="shape"><option value="0">Straight</option><option value="1">Wavy</option><option value="2">Arch</option><option value="3">Wobbly</option></select></label>
 <div class="row">
 <label>Headline style<select id="wa"><option value="0">Plain Impact</option><option value="1">Rainbow WordArt</option><option value="2">3-D yellow</option><option value="3">Outline slant</option><option value="4">Chrome</option><option value="5">Fire</option><option value="6">Bubble</option><option value="7">Sticker</option></select></label>
@@ -128,8 +178,14 @@ input[type=range]{width:100%}
 <label>Border<select id="bd"><option value="0">None</option><option value="1">Dotted</option><option value="2">Chunky ridge</option><option value="3">Double</option></select></label>
 <label>Dingbats<select id="dg"><option value="">None</option><option value="★ ★ ★">Stars</option><option value="☺ ☺ ☺">Smileys</option><option value="♪ ♫ ♪">Notes</option><option value="✿ ✿ ✿">Flowers</option></select></label>
 </div>
-</fieldset>
-<button id="save" type="button">Save as PNG</button><button id="print">Print flyer</button>
+</div></details>
+
+<div class="actionbar">
+<button id="editJump" type="button">Edit</button>
+<button id="save" type="button">Save as PNG</button>
+<button id="print" type="button">Print flyer</button>
+</div>
+
 <p class="hint" id="msg">Print not working? Screenshot the flyer instead.</p>
 <img id="outimg" alt="Your flyer as a PNG" style="display:none;max-width:100%;border:1px solid var(--edge)">
 </div>
@@ -233,6 +289,34 @@ fl.addEventListener("pointerdown",function(e){var el=e.target.closest("[data-d]"
 fl.addEventListener("pointermove",function(e){if(!dr)return;var u=fl.getBoundingClientRect().width/100,t=T[dr.id];t.x=dr.x+(e.clientX-dr.px)/u;t.y=dr.y+(e.clientY-dr.py)/u;applyT(dr.id)});
 function up(){dr=null}fl.addEventListener("pointerup",up);fl.addEventListener("pointercancel",up);
 select(null);
+
+/* ---------- collapsible sections: open on desktop, collapsed on mobile ---------- */
+var mq=window.matchMedia("(min-width:661px)"),secs=document.querySelectorAll("details.sec");
+function syncSec(){
+  for(var n=0;n<secs.length;n++){
+    var d=secs[n];
+    if(mq.matches){d.dataset.locked="1";d.open=true}
+    else{delete d.dataset.locked;if(!d.dataset.user)d.open=false}
+  }
+}
+for(var n=0;n<secs.length;n++)(function(d){
+  d.addEventListener("toggle",function(){
+    if(d.dataset.locked){d.open=true;return}
+    if(!mq.matches)d.dataset.user="1";
+  });
+})(secs[n]);
+function mqChange(){
+  for(var n=0;n<secs.length;n++)delete secs[n].dataset.user;
+  syncSec();
+}
+if(mq.addEventListener)mq.addEventListener("change",mqChange);else mq.addListener(mqChange);
+syncSec();
+
+/* ---------- mobile Edit button jumps to the controls ---------- */
+document.getElementById("editJump").addEventListener("click",function(){
+  document.querySelector(".ctl").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
 load("show");
 })();
 </script>
