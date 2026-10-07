@@ -394,39 +394,82 @@ g("siz").addEventListener("input",function(){if(sel){T[sel].s=this.value/100;app
 g("rst").addEventListener("click",function(){if(sel){T[sel]={x:0,y:0,r:0,s:1};applyT(sel);select(sel)}});
 g("del").addEventListener("click",function(){if(sel&&sel.charAt(0)=="c"){g(sel).remove();delete T[sel];select(null)}});
 var dr=null;
-fl.addEventListener("pointerdown",function(e){
-  var target=e.target;
-  var el=null;
 
-  if(target && target.closest){
-    el=target.closest("[data-d]");
-  }
+function makeDraggable(el){
 
-  if(!el || !fl.contains(el)){
-    select(null);
-    return;
-  }
+  el.style.touchAction="none";
+  el.style.userSelect="none";
+  el.style.webkitUserSelect="none";
 
-  select(el.id);
+  el.addEventListener("pointerdown",function(e){
 
-  var t=T[el.id];
+    var id=el.id;
 
-  dr={
-    id:el.id,
-    px:e.clientX,
-    py:e.clientY,
-    x:t.x,
-    y:t.y
-  };
+    if(!T[id])return;
 
-  try{
-    el.setPointerCapture(e.pointerId);
-  }catch(x){}
+    select(id);
 
-  e.preventDefault();
+    var t=T[id];
+
+    dr={
+      el:el,
+      id:id,
+      pointerId:e.pointerId,
+      px:e.clientX,
+      py:e.clientY,
+      x:t.x,
+      y:t.y
+    };
+
+    try{
+      el.setPointerCapture(e.pointerId);
+    }catch(x){}
+
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  el.addEventListener("pointermove",function(e){
+
+    if(!dr || dr.el!==el || dr.pointerId!==e.pointerId)return;
+
+    var u=fl.getBoundingClientRect().width/100;
+    var t=T[dr.id];
+
+    t.x=dr.x+(e.clientX-dr.px)/u;
+    t.y=dr.y+(e.clientY-dr.py)/u;
+
+    applyT(dr.id);
+
+    e.preventDefault();
+  });
+
+  el.addEventListener("pointerup",function(e){
+    if(dr && dr.el===el && dr.pointerId===e.pointerId){
+      dr=null;
+    }
+  });
+
+  el.addEventListener("pointercancel",function(e){
+    if(dr && dr.el===el && dr.pointerId===e.pointerId){
+      dr=null;
+    }
+  });
+}
+
+
+/* Make the built-in flyer elements draggable */
+Object.keys(NAMES).forEach(function(id){
+  makeDraggable(g(id));
 });
-fl.addEventListener("pointermove",function(e){if(!dr)return;var u=fl.getBoundingClientRect().width/100,t=T[dr.id];t.x=dr.x+(e.clientX-dr.px)/u;t.y=dr.y+(e.clientY-dr.py)/u;applyT(dr.id)});
-function up(){dr=null}fl.addEventListener("pointerup",up);fl.addEventListener("pointercancel",up);
+
+
+/* Make newly-added clip art draggable */
+document.querySelectorAll(".clip").forEach(function(el){
+  makeDraggable(el);
+});
+
+
 select(null);
 
 /* ---------- collapsible sections: open on desktop, collapsed on mobile ---------- */
