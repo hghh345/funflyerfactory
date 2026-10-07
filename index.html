@@ -55,12 +55,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .f0{font-family:'Comic Neue',sans-serif}.f1{font-family:Impact,'Arial Black',sans-serif}.f2{font-family:Papyrus,fantasy,serif}.f3{font-family:'Times New Roman',Times,serif}.f4{font-family:'Courier New',monospace}.f5{font-family:'Trebuchet MS',Verdana,sans-serif}
 @media print{body{background:#fff}.win{border:0;box-shadow:none;margin:0;max-width:none}.title,.top,.ctl,.pv>:not(.flyer){display:none}.wrap{padding:0}.flyer{width:7.5in;box-shadow:none}}
 .pic[hidden]{display:none}
-.pic{display:block;object-fit:cover;width:66cqw;height:34cqw;border:1.2cqw solid #fff;outline:.3cqw solid var(--fg);box-shadow:1cqw 1cqw 0 rgba(0,0,0,.45);transform:rotate(-2deg)}
+.pic{display:block;object-fit:var(--fit,cover);width:66cqw;height:34cqw;border:1.2cqw solid #fff;outline:.3cqw solid var(--fg);box-shadow:1cqw 1cqw 0 rgba(0,0,0,.45);transform:rotate(-2deg)}
 .z1 .head{font-size:10.5cqw}.z1 .sub{font-size:5cqw}.z1 .bodytxt{font-size:3.8cqw}.z1 .when{font-size:4.6cqw}.z1 .dings{display:none}.z1 .burst{top:12cqw;width:22cqw;height:22cqw;font-size:4.4cqw;padding:4cqw}.z1 .tabs{height:14cqw}.z1 .pic{width:50cqw;height:23cqw}
 .z2 .pic{height:36cqw}.z3 .pic{width:70cqw;height:52cqw}.z3 .burst{top:40cqw}
-[data-d]{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+[data-d]{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;pointer-events:all}
 .sel{outline:.5cqw dashed #f0f;outline-offset:.8cqw}
-.clip{position:absolute;left:38cqw;top:34cqw;width:22cqw;height:22cqw;overflow:visible}
+.clip{position:absolute;left:38cqw;top:34cqw;width:22cqw;height:22cqw;overflow:visible;pointer-events:all;z-index:5}
+.clip *{pointer-events:all}
 .w4{background:linear-gradient(#fff 0%,#7aa7ff 42%,#0a1f55 50%,#8fc0ff 58%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.35cqw #002;paint-order:stroke fill;filter:drop-shadow(.7cqw .7cqw 0 rgba(0,0,0,.6))}
 .w5{background:linear-gradient(#ffe600,#ff7a00 55%,#d40000);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.4cqw #3b0000;paint-order:stroke fill;filter:drop-shadow(.6cqw .6cqw 0 #000)}
 .w6{color:#fff;-webkit-text-stroke:1.3cqw var(--ac);paint-order:stroke fill;filter:drop-shadow(.8cqw .8cqw 0 #000)}
@@ -71,12 +72,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .marq div{display:inline-block;padding-left:100%;animation:scrl 22s linear infinite}
 @keyframes scrl{to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.marq div{animation:none;padding-left:0;white-space:normal;display:block;text-align:center}}
-.lib{display:flex;flex-wrap:wrap;gap:2px}.lib button{width:44px;height:44px;padding:3px;margin:0}.lib svg{width:100%;height:100%;display:block}
+.lib{display:flex;flex-wrap:wrap;gap:2px}.lib button{width:44px;height:44px;padding:3px;margin:0}.lib svg{width:100%;height:100%;display:block;pointer-events:none}
 input[type=range]{width:100%}
 .burst,.z1 .burst{word-break:normal;padding:3cqw;font-size:4.2cqw}
 @media (max-width:660px){.wrap{grid-template-columns:minmax(0,1fr)}.top,.pv,.ctl{grid-column:1}.pv{grid-row:2}.ctl{grid-row:3}.flyer{width:min(100%,300px)}}
-@media print{.marq{display:none}.sel{outline:0}.flyer{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-@media print{.flyer.z1{width:7in}.flyer.z2{width:6.5in}.flyer.z3{width:5.5in}}
 
 /* ---------- collapsible control sections ---------- */
 details.sec{margin:0 0 8px;border:1px solid var(--edge)}
@@ -90,7 +89,6 @@ details.sec>summary::after{content:"\25BE";font-size:11px;opacity:.7;transition:
 details.sec[open]>summary::after{transform:rotate(180deg)}
 details.sec>.secbody{padding:0 8px 8px}
 
-/* desktop: look like the old fieldset/legend, always open, not clickable */
 @media (min-width:661px){
   details.sec{position:relative;padding:14px 8px 8px;margin:0 0 8px;border:1px solid var(--edge)}
   details.sec>summary{
@@ -118,7 +116,23 @@ details.sec>.secbody{padding:0 8px 8px}
   #editJump{display:block}
   body{padding-bottom:78px}
 }
-@media print{.actionbar{display:none}}
+
+/* ---------- print rules (must come last to override mobile) ---------- */
+@page{size:auto;margin:0.4in}
+@media print{
+  html,body{background:#fff!important;margin:0!important;padding:0!important;width:auto!important}
+  .win,.wrap,.pv{display:block!important;grid:none!important;padding:0!important;margin:0!important;
+    border:0!important;box-shadow:none!important;max-width:none!important;width:auto!important;background:transparent!important}
+  .title,.marq,.top,.ctl,.actionbar,.hint,#outimg,.sec,.secbody,summary{display:none!important}
+  .flyer{width:7.5in!important;max-width:7.5in!important;height:auto!important;margin:0 auto!important;
+    box-shadow:none!important;overflow:hidden!important;
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .flyer.z1{width:7in!important;max-width:7in!important}
+  .flyer.z2{width:6.5in!important;max-width:6.5in!important}
+  .flyer.z3{width:5.5in!important;max-width:5.5in!important}
+  .sel{outline:0!important}
+  .marq div{animation:none!important}
+}
 </style>
 </head>
 <body>
@@ -160,6 +174,13 @@ details.sec>.secbody{padding:0 8px 8px}
 
 <details class="sec" open><summary>Picture</summary><div class="secbody">
 <input type="file" id="file" accept="image/*" aria-label="Upload one image"><button id="nopic" type="button">Remove picture</button>
+<label>Picture fit
+<select id="fit">
+<option value="cover">Crop to fill (default)</option>
+<option value="contain">Show whole image</option>
+<option value="fill">Stretch to box</option>
+</select>
+</label>
 </div></details>
 
 <details class="sec" open><summary>Looks</summary><div class="secbody">
@@ -170,155 +191,4 @@ details.sec>.secbody{padding:0 8px 8px}
 </div>
 <div class="row">
 <label>Colors<select id="col"><option value="0">Highlighter</option><option value="1">Bubblegum</option><option value="2">Copy shop</option><option value="3">Lime</option><option value="4">Sky</option><option value="5">Hot dog stand</option><option value="6">Grape soda</option><option value="7">Mint</option><option value="8">Sunset</option><option value="9">Orange crush</option><option value="10">Custom...</option></select></label>
-<label>Background<select id="pat"><option value="0">Solid</option><option value="1">Checkerboard</option><option value="2">Polka dots</option><option value="3">Stripes</option></select></label>
-</div>
-<div class="row" id="cust" hidden><label>Background<input type="color" id="c0" value="#ffe600"></label><label>Text<input type="color" id="c1" value="#000000"></label><label>Accent<input type="color" id="c2" value="#ff1493"></label></div>
-<label><input type="checkbox" id="bw"> Black and white (saves color ink)</label>
-<div class="row">
-<label>Border<select id="bd"><option value="0">None</option><option value="1">Dotted</option><option value="2">Chunky ridge</option><option value="3">Double</option></select></label>
-<label>Dingbats<select id="dg"><option value="">None</option><option value="★ ★ ★">Stars</option><option value="☺ ☺ ☺">Smileys</option><option value="♪ ♫ ♪">Notes</option><option value="✿ ✿ ✿">Flowers</option></select></label>
-</div>
-</div></details>
-
-<div class="actionbar">
-<button id="editJump" type="button">Edit</button>
-<button id="save" type="button">Save as PNG</button>
-<button id="print" type="button">Print flyer</button>
-</div>
-
-<p class="hint" id="msg">Print not working? Screenshot the flyer instead.</p>
-<img id="outimg" alt="Your flyer as a PNG" style="display:none;max-width:100%;border:1px solid var(--edge)">
-</div>
-<div class="pv"><div class="flyer" id="fl"><div class="in">
-<div class="plate" id="oPlate"><h1 class="head" id="oHead"></h1></div>
-<span class="sub" id="oSub"></span>
-<img class="pic" id="oPic" alt="" hidden>
-<div class="dings" id="oDg"></div>
-<p class="bodytxt" id="oBody"></p>
-<p class="when" id="oWhen"></p>
-<div class="burst" id="oBurst"></div>
-</div><div class="tabs" id="oTabs"></div></div></div>
-</div></div>
-<script>
-(function(){
-var P={
-show:{head:"BASEMENT SHOW!!!",burst:"ALL AGES",sub:"3 bands. $5. Bring a friend.",body:"Doors at 7. Bring snacks to share.\nNo jerks.",when:"Fri Oct 22 @ 7pm\n418 Maple St (the basement)",tab:"BASEMENT SHOW FRI 7PM",wa:"1",font:"1",col:"0",pat:"0",bd:"2",dg:"★ ★ ★"},
-cat:{head:"HAVE YOU SEEN MITTENS?",burst:"REWARD",sub:"Orange cat. Very chatty.",body:"Last seen near the corner store.\nAnswers to treats, not her name.",when:"Call or text Dana\n555-0142",tab:"MITTENS 555-0142",wa:"0",font:"0",col:"2",pat:"0",bd:"3",dg:""},
-sale:{head:"HUGE YARD SALE",burst:"CHEAP!",sub:"Everything must go",body:"Records, lamps, a bread maker,\nand one (1) exercise bike.",when:"Sat 8am to 2pm\n77 Elm Court",tab:"YARD SALE SAT 8AM",wa:"2",font:"5",col:"3",pat:"2",bd:"1",dg:"☺ ☺ ☺"},
-party:{head:"DANCE PARTY",burst:"FREE ENTRY",sub:"Wear something shiny",body:"DJ sets all night.\nCoat check is a chair.",when:"Sat Nov 6, 10pm\nThe Roller Rink",tab:"DANCE PARTY NOV 6",wa:"3",font:"0",col:"1",pat:"1",bd:"2",dg:"♪ ♫ ♪"}};
-var C=[["#fff200","#000","#ff1493"],["#ff9ee5","#3a006f","#00b7ff"],["#fff","#000","#d00000"],["#b6ff3b","#1a1a8c","#ff5a00"],["#8fd8ff","#00205b","#ff00aa"],["#ff2a2a","#fff200","#ffffff"],["#7a2cff","#ffffff","#3cff9e"],["#9ff5d0","#003b2e","#ff4fa3"],["#ffcf33","#6a0dad","#ff3d00"],["#ff9a1f","#1a0033","#fff200"]];
-var ids=["head","burst","sub","body","when","tab","wa","font","col","pat","bd","dg","sz","tabs","shape","bw","c0","c1","c2"],E={};
-ids.forEach(function(i){E[i]=document.getElementById(i);E[i].addEventListener("input",draw)});
-var fl=document.getElementById("fl"),pic="",AR=["8.5/11","1/1","4/5","9/16"],PX=[[1275,1650],[800,800],[1080,1350],[1080,1920]],msg=document.getElementById("msg"),dl=null;
-var pts=[];for(var i=0;i<32;i++){var a=i*Math.PI/16,r=i%2?38:50;pts.push((50+r*Math.sin(a)).toFixed(1)+"% "+(50-r*Math.cos(a)).toFixed(1)+"%")}
-fl.style.setProperty("--star","polygon("+pts.join(",")+")");
-function load(k){var p=P[k];for(var k2 in p)E[k2].value=p[k2];draw()}
-function draw(){
-var c=+E.col.value==10?[E.c0.value,E.c1.value,E.c2.value]:C[+E.col.value];document.getElementById("cust").hidden=E.col.value!="10";
-fl.style.setProperty("--bg",c[0]);fl.style.setProperty("--fg",c[1]);fl.style.setProperty("--ac",c[2]);
-fl.className="flyer b"+E.bd.value+" p"+E.pat.value+" f"+E.font.value+" z"+E.sz.value+(E.bw.checked?" bw":"");
-fl.style.setProperty("--ar",AR[+E.sz.value]);
-var pc=document.getElementById("oPic");if(pic){pc.src=pic;pc.hidden=false}else{pc.removeAttribute("src");pc.hidden=true}
-var h=document.getElementById("oHead"),sh=+E.shape.value,tx=E.head.value;h.textContent="";
-if(!sh){h.textContent=tx;h.className="head w"+E.wa.value}else{h.className="head";var cs=tx.replace(/\s+/g," ").trim(),n=cs.replace(/ /g,"").length,k=0;
-cs.split(" ").forEach(function(w,wi){if(wi)h.appendChild(document.createTextNode(" "));var ws=document.createElement("span");ws.className="wd";
-w.split("").forEach(function(ch){var l=document.createElement("span"),t=(k-(n-1)/2)/Math.max(1,n/2),y,r;
-if(sh==1){y=Math.sin(k*.9)*1.6;r=0}else if(sh==2){y=t*t*6;r=t*20}else{y=Math.sin(k*12.9)*1.2;r=Math.sin(k*7.7)*8}
-l.className="l w"+E.wa.value;l.textContent=ch;l.style.transform="translateY("+y.toFixed(2)+"cqw) rotate("+r.toFixed(1)+"deg)";ws.appendChild(l);k++});h.appendChild(ws)})}
-var s=document.getElementById("oSub");s.textContent=E.sub.value;s.style.display=E.sub.value?"inline-block":"none";
-document.getElementById("oBody").textContent=E.body.value;
-document.getElementById("oWhen").textContent=E.when.value;
-document.getElementById("oDg").textContent=E.dg.value;
-var b=document.getElementById("oBurst");b.textContent=E.burst.value;b.style.display=E.burst.value?"flex":"none";
-var t=document.getElementById("oTabs");t.style.display=E.tabs.checked?"flex":"none";E.tab.disabled=!E.tabs.checked;t.innerHTML="";
-for(var i=0;i<8;i++){var d=document.createElement("div");d.className="tab";d.textContent=E.tab.value;t.appendChild(d)}
-}
-document.querySelectorAll("[data-t]").forEach(function(b){b.addEventListener("click",function(){load(b.getAttribute("data-t"))})});
-document.getElementById("print").addEventListener("click",function(){window.print()});
-document.getElementById("file").addEventListener("change",function(e){
-var f=e.target.files[0];if(!f)return;var u=URL.createObjectURL(f),im=new Image();
-im.onload=function(){var m=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pic=c.toDataURL("image/jpeg",.88);URL.revokeObjectURL(u);draw()};
-im.onerror=function(){msg.textContent="That file would not open as an image. Try a JPG or PNG."};im.src=u});
-document.getElementById("nopic").addEventListener("click",function(){pic="";document.getElementById("file").value="";draw()});
-E.tabs.addEventListener("change",draw);
-function say(t){msg.textContent=t}
-function savePng(){
-var z=PX[+E.sz.value],W=z[0],H=z[1],n=fl.cloneNode(true);
-n.removeAttribute("id");n.querySelectorAll(".sel").forEach(function(e){e.classList.remove("sel")});n.style.width=W+"px";n.style.height=H+"px";n.style.aspectRatio="auto";n.style.boxShadow="none";
-var css=document.querySelector("style").textContent.replace(/&/g,"&amp;").replace(/</g,"&lt;");
-var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>'+css+'</style>'+new XMLSerializer().serializeToString(n)+'</div></foreignObject></svg>';
-var im=new Image();say("Making your PNG...");
-im.onload=function(){try{var c=document.createElement("canvas");c.width=W;c.height=H;c.getContext("2d").drawImage(im,0,0);
-c.toBlob(function(b){if(!b){say("Could not make the PNG. Screenshot the flyer instead.");return}
-function showImg(){var o=document.getElementById("outimg");o.src=URL.createObjectURL(b);o.style.display="block";say("Right-click or long-press the picture below to save it.")}
-if(!dl){showImg();return}
-dl.save({filename:"funflyer-"+W+"x"+H+".png",data:b}).then(function(){say("Saved.")}).catch(function(e){if(e&&e.code==="declined")say("Save cancelled.");else showImg()})},"image/png")}catch(x){say("Could not make the PNG. Screenshot the flyer instead.")}};
-im.onerror=function(){say("Could not make the PNG. Screenshot the flyer instead.")};
-im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)}
-document.getElementById("save").addEventListener("click",savePng);
-try{if(window.claude&&claude.use)claude.use("downloads").then(function(d){dl=d||null}).catch(function(){})}catch(x){}
-var T={},sel=null,cid=0,NAMES={oPlate:"Headline",oSub:"Subheading",oPic:"Picture",oDg:"Dingbats",oBody:"Details",oWhen:"When and where",oBurst:"Sticker"};
-function g(i){return document.getElementById(i)}
-function bp(n,ro,ri){var a=[];for(var i=0;i<n*2;i++){var q=i*Math.PI/n,r=i%2?ri:ro;a.push((50+r*Math.sin(q)).toFixed(1)+","+(50-r*Math.cos(q)).toFixed(1))}return a.join(" ")}
-function badge(t,f){return '<polygon points="'+bp(12,47,36)+'" fill="'+f+'"/><text x="50" y="58" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="25" fill="#fff" stroke="#000" stroke-width="1.5">'+t+'</text>'}
-var K=[["Lightning",'<polygon points="58,4 20,56 46,56 38,96 82,40 56,40" fill="#ffe600"/>'],
-["Flame",'<path d="M50 6C60 28 84 40 78 68C74 88 58 96 50 96C30 96 20 80 24 62C28 46 38 40 40 24C46 30 48 20 50 6Z" fill="#ff7a00"/><path d="M50 52C58 62 66 70 60 82C56 90 44 90 40 80C36 70 46 64 50 52Z" fill="#ffe600"/>'],
-["Star",'<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="#ffe600"/>'],
-["Sparkle",'<polygon points="50,2 60,40 98,50 60,60 50,98 40,60 2,50 40,40" fill="#00e5ff"/>'],
-["Arrow",'<polygon points="6,38 60,38 60,18 94,50 60,82 60,62 6,62" fill="#ff2d95"/>'],
-["Smiley",'<circle cx="50" cy="50" r="44" fill="#ffe600"/><circle cx="36" cy="40" r="6" fill="#000"/><circle cx="64" cy="40" r="6" fill="#000"/><path d="M28 60Q50 86 72 60" stroke-width="5"/>'],
-["Heart",'<path d="M50 90C10 58 6 30 28 18C40 12 50 22 50 30C50 22 60 12 72 18C94 30 90 58 50 90Z" fill="#ff1744"/>'],
-["Music note",'<ellipse cx="34" cy="76" rx="18" ry="13" fill="#000"/><rect x="48" y="14" width="8" height="62" fill="#000"/><path d="M52 14Q86 26 84 52Q74 38 52 36Z" fill="#000"/>'],
-["Speech bubble",'<path d="M10 14H90V64H58L38 90L40 64H10Z" fill="#fff"/><text x="50" y="52" text-anchor="middle" font-family="Impact,sans-serif" font-size="30" fill="#f0f" stroke="none">!!!</text>'],
-["NEW!",badge("NEW!","#e00000")],["FREE!",badge("FREE!","#0a8f2e")],["HOT!",badge("HOT!","#ff6a00")]];
-function svgOf(i,c){return '<svg viewBox="0 0 100 100" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"'+(c?' class="'+c+'"':'')+'>'+K[i][1]+'</svg>'}
-function applyT(id){var e=g(id),t=T[id];e.style.translate=t.x+"cqw "+t.y+"cqw";e.style.rotate=t.r+"deg";e.style.scale=t.s}
-function select(id){document.querySelectorAll(".sel").forEach(function(e){e.classList.remove("sel")});sel=id;var on=!!id;
-["rot","siz","rst"].forEach(function(i){g(i).disabled=!on});g("del").disabled=!(on&&id.charAt(0)=="c");
-if(on){g(id).classList.add("sel");var t=T[id];g("rot").value=t.r;g("siz").value=Math.round(t.s*100);g("selName").textContent=NAMES[id]||"Clip art"}else g("selName").textContent="Nothing selected. Click something on the flyer."}
-K.forEach(function(k,i){var b=document.createElement("button");b.type="button";b.title=k[0];b.innerHTML=svgOf(i);b.addEventListener("click",function(){
-var id="c"+(++cid),d=document.createElement("div");d.innerHTML=svgOf(i,"clip");var e=d.firstChild;e.id=id;e.setAttribute("data-d","1");
-document.querySelector(".in").appendChild(e);T[id]={x:(cid%4)*5-8,y:(cid%3)*5-5,r:0,s:1};applyT(id);select(id)});g("lib").appendChild(b)});
-Object.keys(NAMES).forEach(function(i){g(i).setAttribute("data-d","1");T[i]={x:0,y:0,r:0,s:1}});
-g("rot").addEventListener("input",function(){if(sel){T[sel].r=+this.value;applyT(sel)}});
-g("siz").addEventListener("input",function(){if(sel){T[sel].s=this.value/100;applyT(sel)}});
-g("rst").addEventListener("click",function(){if(sel){T[sel]={x:0,y:0,r:0,s:1};applyT(sel);select(sel)}});
-g("del").addEventListener("click",function(){if(sel&&sel.charAt(0)=="c"){g(sel).remove();delete T[sel];select(null)}});
-var dr=null;
-fl.addEventListener("pointerdown",function(e){var el=e.target.closest("[data-d]");if(!el){select(null);return}select(el.id);var t=T[el.id];dr={id:el.id,px:e.clientX,py:e.clientY,x:t.x,y:t.y};try{el.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
-fl.addEventListener("pointermove",function(e){if(!dr)return;var u=fl.getBoundingClientRect().width/100,t=T[dr.id];t.x=dr.x+(e.clientX-dr.px)/u;t.y=dr.y+(e.clientY-dr.py)/u;applyT(dr.id)});
-function up(){dr=null}fl.addEventListener("pointerup",up);fl.addEventListener("pointercancel",up);
-select(null);
-
-/* ---------- collapsible sections: open on desktop, collapsed on mobile ---------- */
-var mq=window.matchMedia("(min-width:661px)"),secs=document.querySelectorAll("details.sec");
-function syncSec(){
-  for(var n=0;n<secs.length;n++){
-    var d=secs[n];
-    if(mq.matches){d.dataset.locked="1";d.open=true}
-    else{delete d.dataset.locked;if(!d.dataset.user)d.open=false}
-  }
-}
-for(var n=0;n<secs.length;n++)(function(d){
-  d.addEventListener("toggle",function(){
-    if(d.dataset.locked){d.open=true;return}
-    if(!mq.matches)d.dataset.user="1";
-  });
-})(secs[n]);
-function mqChange(){
-  for(var n=0;n<secs.length;n++)delete secs[n].dataset.user;
-  syncSec();
-}
-if(mq.addEventListener)mq.addEventListener("change",mqChange);else mq.addListener(mqChange);
-syncSec();
-
-/* ---------- mobile Edit button jumps to the controls ---------- */
-document.getElementById("editJump").addEventListener("click",function(){
-  document.querySelector(".ctl").scrollIntoView({behavior:"smooth",block:"start"});
-});
-
-load("show");
-})();
-</script>
-</body>
-</html>
+<label>Background<select id="pat"><option value="0">Solid</option><option value="1">Checkerboard</option><option value="2">Polka dots</option><option value="3">Stripes</option
