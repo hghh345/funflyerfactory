@@ -387,7 +387,7 @@ function select(id){document.querySelectorAll(".sel").forEach(function(e){e.clas
 if(on){g(id).classList.add("sel");var t=T[id];g("rot").value=t.r;g("siz").value=Math.round(t.s*100);g("selName").textContent=NAMES[id]||"Clip art"}else g("selName").textContent="Nothing selected. Click something on the flyer."}
 K.forEach(function(k,i){var b=document.createElement("button");b.type="button";b.title=k[0];b.innerHTML=svgOf(i);b.addEventListener("click",function(){
 var id="c"+(++cid),d=document.createElement("div");d.innerHTML=svgOf(i,"clip");var e=d.firstChild;e.id=id;e.setAttribute("data-d","1");
-document.querySelector(".in").appendChild(e);T[id]={x:(cid%4)*5-8,y:(cid%3)*5-5,r:0,s:1};applyT(id);select(id)});g("lib").appendChild(b)});
+document.querySelector(".in").appendChild(e);T[id]={x:(cid%4)*5-8,y:(cid%3)*5-5,r:0,s:1};applyT(id);makeDraggable(e);select(id)});g("lib").appendChild(b)});
 Object.keys(NAMES).forEach(function(i){g(i).setAttribute("data-d","1");T[i]={x:0,y:0,r:0,s:1}});
 g("rot").addEventListener("input",function(){if(sel){T[sel].r=+this.value;applyT(sel)}});
 g("siz").addEventListener("input",function(){if(sel){T[sel].s=this.value/100;applyT(sel)}});
