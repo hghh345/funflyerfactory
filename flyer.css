@@ -86,16 +86,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   outline-offset:.8cqw;
 }
 
-.clip{
-  position:absolute;
-  left:38cqw;
-  top:34cqw;
-  width:22cqw;
-  height:22cqw;
-  overflow:visible;
-  z-index:20;
-  pointer-events:auto;
-}
+
 .w4{background:linear-gradient(#fff 0%,#7aa7ff 42%,#0a1f55 50%,#8fc0ff 58%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.35cqw #002;paint-order:stroke fill;filter:drop-shadow(.7cqw .7cqw 0 rgba(0,0,0,.6))}
 .w5{background:linear-gradient(#ffe600,#ff7a00 55%,#d40000);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.4cqw #3b0000;paint-order:stroke fill;filter:drop-shadow(.6cqw .6cqw 0 #000)}
 .w6{color:#fff;-webkit-text-stroke:1.3cqw var(--ac);paint-order:stroke fill;filter:drop-shadow(.8cqw .8cqw 0 #000)}
