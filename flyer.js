@@ -1319,152 +1319,161 @@ fl.addEventListener(
 
 
 /* ---------- PNG ---------- */
-
 function savePng(){
 
-  var z=
-    PX[+E.sz.value];
-
+  var z=PX[+E.sz.value];
   var W=z[0];
   var H=z[1];
 
-
-  var n=
-    fl.cloneNode(true);
-
+  var n=fl.cloneNode(true);
 
   n.removeAttribute("id");
 
+  n.querySelectorAll(".sel").forEach(function(e){
+    e.classList.remove("sel");
+  });
 
-  n.querySelectorAll(".sel")
-    .forEach(function(e){
+  /*
+    Make absolutely sure the uploaded picture is
+    included in the exported flyer.
 
-      e.classList.remove(
-        "sel"
-      );
+    The live flyer already has the correct data URL,
+    but we explicitly put that data URL onto the
+    cloned picture for mobile browsers.
+  */
+  var exportedPic=n.querySelector("#oPic");
 
-    });
+  if(exportedPic && pic){
 
+    exportedPic.setAttribute(
+      "src",
+      pic
+    );
 
-  n.style.width=
-    W+"px";
+    exportedPic.removeAttribute(
+      "hidden"
+    );
 
-  n.style.height=
-    H+"px";
+    exportedPic.style.display=
+      "block";
 
-  n.style.aspectRatio=
-    "auto";
+    exportedPic.style.visibility=
+      "visible";
 
-  n.style.boxShadow=
-    "none";
+    exportedPic.style.opacity=
+      "1";
 
+    exportedPic.style.position=
+      "relative";
+
+    exportedPic.style.zIndex=
+      "5";
+
+    exportedPic.style.width=
+      "auto";
+
+    exportedPic.style.height=
+      "auto";
+
+    exportedPic.style.maxWidth=
+      "80cqw";
+
+    exportedPic.style.maxHeight=
+      "50cqw";
+
+    exportedPic.style.objectFit=
+      "contain";
+
+  }
+
+  n.style.width=W+"px";
+  n.style.height=H+"px";
+  n.style.aspectRatio="auto";
+  n.style.boxShadow="none";
 
   var css="";
 
+  document.querySelectorAll("style").forEach(function(s){
+    css+=s.textContent+"\n";
+  });
 
-  document
-    .querySelectorAll("style")
-    .forEach(function(s){
+  var sheets=document.querySelectorAll(
+    'link[rel="stylesheet"]'
+  );
 
-      css+=
-        s.textContent+
-        "\n";
+  sheets.forEach(function(link){
 
-    });
+    try{
 
+      if(link.sheet && link.sheet.cssRules){
 
-  var sheets=
-    document.querySelectorAll(
-      'link[rel="stylesheet"]'
-    );
-
-
-  sheets.forEach(
-    function(link){
-
-      try{
-
-        if(
-          link.sheet &&
-          link.sheet.cssRules
+        for(
+          var i=0;
+          i<link.sheet.cssRules.length;
+          i++
         ){
 
-          for(
-            var i=0;
-            i<link.sheet.cssRules.length;
-            i++
-          ){
-
-            css+=
-              link.sheet
-                .cssRules[i]
-                .cssText+
-              "\n";
-
-          }
+          css+=
+            link.sheet.cssRules[i].cssText+
+            "\n";
 
         }
 
-      }catch(e){}
+      }
 
-    }
-  );
+    }catch(e){}
 
+  });
 
   css=
     css
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      );
-
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;");
 
   var svg=
-    '<svg xmlns="http://www.w3.org/2000/svg"'+
-    ' width="'+W+'" height="'+H+'">'+
-    '<foreignObject width="100%" height="100%">'+
-    '<div xmlns="http://www.w3.org/1999/xhtml">'+
-    '<style>'+css+'</style>'+
+    '<svg xmlns="http://www.w3.org/2000/svg"' +
+    ' width="'+W+'" height="'+H+'">' +
+
+    '<foreignObject width="100%" height="100%">' +
+
+    '<div xmlns="http://www.w3.org/1999/xhtml">' +
+
+    '<style>'+css+'</style>' +
+
     new XMLSerializer()
-      .serializeToString(n)+
-    '</div>'+
-    '</foreignObject>'+
+      .serializeToString(n) +
+
+    '</div>' +
+
+    '</foreignObject>' +
+
     '</svg>';
 
+  var im=new Image();
 
-  var im=
-    new Image();
-
-
-  say(
-    "Making your PNG..."
-  );
-
-
+  /*
+    Important for mobile browsers:
+    wait for the exported SVG/image to finish loading
+    before creating the PNG.
+  */
   im.onload=function(){
 
     try{
 
-      var c=
-        document.createElement(
-          "canvas"
-        );
+      var c=document.createElement("canvas");
 
       c.width=W;
       c.height=H;
 
+      var ctx=c.getContext("2d");
 
-      c.getContext("2d")
-        .drawImage(
-          im,
-          0,
-          0
-        );
-
+      ctx.drawImage(
+        im,
+        0,
+        0,
+        W,
+        H
+      );
 
       c.toBlob(
         function(b){
@@ -1479,14 +1488,10 @@ function savePng(){
 
           }
 
-
           function showImg(){
 
             var o=
-              document.getElementById(
-                "outimg"
-              );
-
+              document.getElementById("outimg");
 
             o.src=
               URL.createObjectURL(b);
@@ -1494,70 +1499,56 @@ function savePng(){
             o.style.display=
               "block";
 
-
             say(
               "Right-click or long-press the picture below to save it."
             );
 
           }
 
-
           if(!dl){
 
             showImg();
-
             return;
 
           }
 
-
           dl.save({
             filename:
-              "funflyer-"+
-              W+
-              "x"+
-              H+
-              ".png",
-
+              "funflyer-"+W+"x"+H+".png",
             data:b
+          })
+          .then(function(){
+
+            say("Saved.");
 
           })
-          .then(
-            function(){
+          .catch(function(e){
 
-              say(
-                "Saved."
-              );
+            if(
+              e &&
+              e.code==="declined"
+            ){
 
-            }
-          )
-          .catch(
-            function(e){
+              say("Save cancelled.");
 
-              if(
-                e &&
-                e.code==="declined"
-              ){
+            }else{
 
-                say(
-                  "Save cancelled."
-                );
-
-              }else{
-
-                showImg();
-
-              }
+              showImg();
 
             }
-          );
+
+          });
 
         },
         "image/png"
       );
 
-
     }catch(x){
+
+      console.error(
+        "PNG EXPORT ERROR:",
+        x
+      );
 
       say(
         "Could not make the PNG. Screenshot the flyer instead."
@@ -1567,8 +1558,11 @@ function savePng(){
 
   };
 
-
   im.onerror=function(){
+
+    console.error(
+      "PNG IMAGE LOAD ERROR"
+    );
 
     say(
       "Could not make the PNG. Screenshot the flyer instead."
@@ -1576,6 +1570,7 @@ function savePng(){
 
   };
 
+  say("Making your PNG...");
 
   im.src=
     "data:image/svg+xml;charset=utf-8,"+
