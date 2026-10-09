@@ -393,10 +393,11 @@ function say(t){
 }
 
 
-/* ---------- PDF ---------- */
 
 
-/* ---------- download flyer as PNG ---------- */
+
+
+/* ---------- make, download and print flyer ---------- */
 
 document.getElementById("save").addEventListener("click", async function () {
   var button = this;
@@ -406,30 +407,22 @@ document.getElementById("save").addEventListener("click", async function () {
 
   button.disabled = true;
   button.textContent = "Making your flyer...";
-  say("Preparing your flyer for download...");
+  say("Preparing your finished flyer...");
 
   try {
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
 
+    var size = PX[Number(E.sz.value)];
     var flyer = document.getElementById("fl");
 
-    if (!flyer || typeof html2canvas !== "function") {
-      throw new Error("Flyer or image export library is unavailable.");
-    }
-
-    var z = Number(E.sz.value);
-    var size = PX[z];
-
-    if (!size) {
-      throw new Error("Invalid flyer size.");
+    if (!size || !flyer || typeof html2canvas !== "function") {
+      throw new Error("The flyer or export library is unavailable.");
     }
 
     var W = size[0];
     var H = size[1];
-
-    // Wait for the flyer picture to finish loading.
     var picture = document.getElementById("oPic");
 
     if (picture && !picture.hidden && picture.src && !picture.complete) {
@@ -440,32 +433,44 @@ document.getElementById("save").addEventListener("click", async function () {
     }
 
     var canvas = await html2canvas(flyer, {
-      scale: 2,
-      useCORS: true,
+      scale: 1,
+      width: W,
+      height: H,
+      windowWidth: Math.max(document.documentElement.clientWidth, W),
       backgroundColor: null,
       logging: false,
       onclone: function (clonedDoc) {
         var clonedFlyer = clonedDoc.getElementById("fl");
 
-        // Keep selection outlines out of the downloaded image.
         clonedDoc.querySelectorAll(".sel").forEach(function (el) {
           el.classList.remove("sel");
         });
 
         if (clonedFlyer) {
-          clonedFlyer.style.width = "100%";
-          clonedFlyer.style.height = "auto";
+          clonedFlyer.style.setProperty("width", W + "px", "important");
+          clonedFlyer.style.setProperty("height", H + "px", "important");
+          clonedFlyer.style.setProperty("max-width", "none", "important");
+          clonedFlyer.style.setProperty("aspect-ratio", "auto", "important");
+          clonedFlyer.style.setProperty("box-shadow", "none", "important");
         }
       }
     });
 
+    // Ensure the final PNG uses the selected output dimensions.
+    var output = document.createElement("canvas");
+    output.width = W;
+    output.height = H;
+
+    var ctx = output.getContext("2d");
+    if (!ctx) throw new Error("Could not create the output canvas.");
+
+    ctx.drawImage(canvas, 0, 0, W, H);
+
     var blob = await new Promise(function (resolve) {
-      canvas.toBlob(resolve, "image/png");
+      output.toBlob(resolve, "image/png");
     });
 
-    if (!blob) {
-      throw new Error("PNG creation failed.");
-    }
+    if (!blob) throw new Error("Could not create the PNG.");
 
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
@@ -478,17 +483,23 @@ document.getElementById("save").addEventListener("click", async function () {
     link.click();
     link.remove();
 
-    // Give the browser time to begin the download.
     setTimeout(function () {
       URL.revokeObjectURL(url);
-    }, 10000);
+    }, 60000);
 
-    say("Your flyer is ready! Check your downloads.");
+    say("PNG created. Opening print options...");
+
+    // Allow the download to start before requesting the print dialog.
+    setTimeout(function () {
+      button.disabled = false;
+      button.textContent = originalText;
+
+      window.print();
+    }, 700);
 
   } catch (err) {
-    console.error("Flyer download failed:", err);
-    say("Download failed. Please try again or take a screenshot.");
-  } finally {
+    console.error("Flyer export failed:", err);
+    say("Something went wrong. Please try again.");
     button.disabled = false;
     button.textContent = originalText;
   }
