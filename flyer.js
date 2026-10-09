@@ -1182,139 +1182,9 @@ function savePng(){
 }
 
 
-/*
-  Draw the uploaded photo onto the export canvas
-  using the SAME position as the live flyer.
-*/
-function drawPhotoOnCanvas(ctx,canvas,photo){
-
-  var livePic = document.getElementById("oPic");
-
-  if(!livePic || livePic.hidden){
-    return;
-  }
-
-  var flyerRect = fl.getBoundingClientRect();
-  var picRect = livePic.getBoundingClientRect();
-
-  if(
-    !flyerRect.width ||
-    !flyerRect.height ||
-    !picRect.width ||
-    !picRect.height
-  ){
-    return;
-  }
-
-  /* Use the T object transforms instead of browser coordinates */
-  var t = T["oPic"];
-  
-  if(!t){
-    return;
-  }
-
-  var scaleX = canvas.width / flyerRect.width;
-  var scaleY = canvas.height / flyerRect.height;
-
-  /* Get the live picture's base position and size */
-  var x = (picRect.left - flyerRect.left) * scaleX;
-  var y = (picRect.top - flyerRect.top) * scaleY;
-  var w = picRect.width * scaleX;
-  var h = picRect.height * scaleY;
-
-  /* Apply the transforms from T */
-  var cqwToPx = flyerRect.width / 100;
-  var offsetX = t.x * cqwToPx * scaleX;
-  var offsetY = t.y * cqwToPx * scaleY;
-  var scale = t.s;
-  var rotation = (t.r || 0) * Math.PI / 180;
-
-  /* Calculate center with offset applied */
-  var cx = x + w/2 + offsetX;
-  var cy = y + h/2 + offsetY;
-
-  ctx.save();
-
-  ctx.translate(cx, cy);
-  ctx.rotate(rotation);
-  ctx.rotate(-2 * Math.PI / 180);
-  ctx.scale(scale, scale);
-
-  ctx.drawImage(
-    photo,
-    -w/2,
-    -h/2,
-    w,
-    h
-  );
-
-  ctx.restore();
-}
 
 
-/*
-  Turn the finished canvas into the PNG.
-*/
-function finishPng(canvas){
 
-  try{
-
-    canvas.toBlob(function(blob){
-
-      if(!blob){
-
-        say(
-          "Could not make the PNG. Screenshot the flyer instead."
-        );
-
-        return;
-      }
-
-      var out =
-        document.getElementById("outimg");
-
-      out.src =
-        URL.createObjectURL(blob);
-
-      out.style.display = "block";
-
-      say(
-        "Your PNG is ready below. Long-press it to save."
-      );
-
-      /* Scroll to the image on mobile */
-      setTimeout(function(){
-        out.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-      }, 100);
-
-      if(typeof dl !== "undefined" && dl){
-
-        dl.save({
-          filename:
-            "funflyer-"+canvas.width+"x"+canvas.height+".png",
-
-          data:blob
-
-        }).catch(function(){
-
-        });
-
-      }
-
-    },"image/png");
-
-  }catch(err){
-
-    console.error("PNG FINISH ERROR:",err);
-
-    say(
-      "Could not make the PNG. Screenshot the flyer instead."
-    );
-  }
-}
 /* ---------- collapsible sections ---------- */
 
 var mq=
@@ -1453,11 +1323,7 @@ document.getElementById(
 
   }
 );
-document.getElementById("save")
-  .addEventListener(
-    "click",
-    savePng
-  );
+
 
 /* ---------- start ---------- */
 
