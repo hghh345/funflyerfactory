@@ -395,339 +395,165 @@ function say(t){
 
 /* ---------- PDF ---------- */
 
-document.getElementById("print").addEventListener(
-  "click",
-  function(){
+document.getElementById("print").addEventListener("click", function(){
 
-    var button=this;
+  var button = this;
 
-    var originalText=
-      button.textContent;
+  button.disabled = true;
+  button.textContent = "Preparing flyer...";
 
-    button.disabled=true;
+  say("Preparing your flyer for printing...");
 
-    button.textContent=
-      "Making PDF...";
+  var z = +E.sz.value;
+  var size = PX[z];
+  var W = size[0];
+  var H = size[1];
 
-    say(
-      "Making your PDF..."
-    );
+  var flyer = document.getElementById("fl");
+  var photo = document.getElementById("oPic");
 
+  /*
+    Render the flyer and photo together directly
+    to a canvas, using the same approach as Save PNG.
+  */
+  var clone = flyer.cloneNode(true);
+  clone.removeAttribute("id");
 
+  clone.querySelectorAll(".sel").forEach(function(el){
+    el.classList.remove("sel");
+  });
+
+  var clonedPic = clone.querySelector("#oPic");
+
+  if(clonedPic){
+    clonedPic.removeAttribute("src");
+    clonedPic.setAttribute("hidden", "");
+    clonedPic.style.display = "none";
+  }
+
+  clone.style.width = W + "px";
+  clone.style.height = H + "px";
+  clone.style.aspectRatio = "auto";
+  clone.style.boxShadow = "none";
+
+  var css = "";
+
+  document.querySelectorAll("style").forEach(function(s){
+    css += s.textContent + "\n";
+  });
+
+  document.querySelectorAll('link[rel="stylesheet"]').forEach(function(link){
     try{
-
-      if(
-        !window.jspdf ||
-        typeof window.jspdf.jsPDF!=="function"
-      ){
-
-        throw new Error(
-          "jsPDF is not loaded"
-        );
-
+      if(link.sheet && link.sheet.cssRules){
+        for(var i = 0; i < link.sheet.cssRules.length; i++){
+          css += link.sheet.cssRules[i].cssText + "\n";
+        }
       }
+    }catch(e){}
+  });
 
+  css = css.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-      var jsPDF=
-        window.jspdf.jsPDF;
+  var svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">' +
+    '<foreignObject width="100%" height="100%">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml">' +
+    '<style>' + css + '</style>' +
+    new XMLSerializer().serializeToString(clone) +
+    '</div></foreignObject></svg>';
 
+  var renderImage = new Image();
 
-      var z=+E.sz.value;
+  renderImage.onload = function(){
 
-      var size=PX[z];
+    var canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
 
-      var W=size[0];
-      var H=size[1];
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(renderImage, 0, 0, W, H);
 
+    function openPrintPage(){
 
-      var n=
-        fl.cloneNode(true);
+      canvas.toBlob(function(blob){
 
-      n.removeAttribute("id");
+        button.disabled = false;
+        button.textContent = "Print flyer";
 
-
-      n.querySelectorAll(".sel")
-        .forEach(function(e){
-
-          e.classList.remove("sel");
-
-        });
-
-
-      n.querySelectorAll("[data-d]")
-        .forEach(function(e){
-
-          e.style.zIndex="20";
-
-        });
-
-
-      var exportedPic=
-        n.querySelector(".pic");
-
-
-      if(exportedPic){
-
-        exportedPic.style.position=
-          "relative";
-
-        exportedPic.style.zIndex="5";
-
-      }
-
-
-      n.style.width=
-        W+"px";
-
-      n.style.height=
-        H+"px";
-
-      n.style.aspectRatio=
-        "auto";
-
-      n.style.boxShadow=
-        "none";
-
-      n.style.position=
-        "relative";
-
-      n.style.overflow=
-        "hidden";
-
-
-      /* collect CSS */
-
-      var css="";
-
-
-      document.querySelectorAll("style")
-        .forEach(function(s){
-
-          css+=
-            s.textContent+
-            "\n";
-
-        });
-
-
-      var sheets=
-        document.querySelectorAll(
-          'link[rel="stylesheet"]'
-        );
-
-
-      sheets.forEach(function(link){
-
-        try{
-
-          if(
-            link.sheet &&
-            link.sheet.cssRules
-          ){
-
-            for(
-              var i=0;
-              i<link.sheet.cssRules.length;
-              i++
-            ){
-
-              css+=
-                link.sheet
-                  .cssRules[i]
-                  .cssText+
-                "\n";
-
-            }
-
-          }
-
-        }catch(e){}
-
-      });
-
-
-      css=css
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;");
-
-
-      var svg=
-        '<svg xmlns="http://www.w3.org/2000/svg"'+
-        ' width="'+W+'" height="'+H+'">'+
-        '<foreignObject width="100%" height="100%">'+
-        '<div xmlns="http://www.w3.org/1999/xhtml">'+
-        '<style>'+css+'</style>'+
-        new XMLSerializer()
-          .serializeToString(n)+
-        '</div>'+
-        '</foreignObject>'+
-        '</svg>';
-
-
-      var im=new Image();
-
-
-      im.onload=function(){
-
-        try{
-
-          var canvas=
-            document.createElement(
-              "canvas"
-            );
-
-          canvas.width=W;
-          canvas.height=H;
-
-
-          var ctx=
-            canvas.getContext("2d");
-
-
-          ctx.drawImage(
-            im,
-            0,
-            0,
-            W,
-            H
-          );
-
-
-          var pdfSizes=[
-            [8.5,11],
-            [8,8],
-            [8,10],
-            [6,10.6666667]
-          ];
-
-
-          var pw=
-            pdfSizes[z][0];
-
-          var ph=
-            pdfSizes[z][1];
-
-
-          var pdf=
-            new jsPDF({
-
-              orientation:
-                ph>pw
-                  ?"portrait"
-                  :"landscape",
-
-              unit:"in",
-
-              format:[
-                pw,
-                ph
-              ],
-
-              compress:true
-
-            });
-
-
-          pdf.addImage(
-            canvas.toDataURL(
-              "image/png"
-            ),
-            "PNG",
-            0,
-            0,
-            pw,
-            ph,
-            undefined,
-            "FAST"
-          );
-
-
-          var names=[
-            "letter",
-            "square",
-            "4x5",
-            "story"
-          ];
-
-
-          pdf.save(
-            "funflyer-"+
-            names[z]+
-            ".pdf"
-          );
-
-
-          say(
-            "PDF saved!"
-          );
-
-
-        }catch(err){
-
-          console.error(
-            "PDF RENDER ERROR:",
-            err
-          );
-
-          say(
-            "Could not make the PDF. Try Save as PNG instead."
-          );
-
+        if(!blob){
+          say("Could not prepare the flyer. Try Save as PNG.");
+          return;
         }
 
+        var imageURL = URL.createObjectURL(blob);
+        var printWindow = window.open("", "_blank");
 
-        button.disabled=false;
+        if(!printWindow){
+          say("Your flyer is ready. Use Save as PNG, then print the image.");
+          return;
+        }
 
-        button.textContent=
-          originalText;
-
-      };
-
-
-      im.onerror=function(){
-
-        console.error(
-          "Could not render flyer SVG"
+        printWindow.document.open();
+        printWindow.document.write(
+          '<!DOCTYPE html><html><head>' +
+          '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+          '<title>Print flyer</title>' +
+          '<style>' +
+          'html,body{margin:0;padding:0;background:#fff}' +
+          'body{display:flex;justify-content:center;align-items:flex-start}' +
+          'img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain}' +
+          '@media print{' +
+          '@page{margin:0}' +
+          'html,body{width:100%;height:100%;margin:0;padding:0}' +
+          'img{width:100%;height:auto;max-height:100vh;object-fit:contain}' +
+          '}' +
+          '</style></head><body>' +
+          '<img id="printFlyer" src="' + imageURL + '" alt="Flyer to print">' +
+          '<script>' +
+          'var p=document.getElementById("printFlyer");' +
+          'p.onload=function(){setTimeout(function(){window.print()},500)};' +
+          '<\/script>' +
+          '</body></html>'
         );
+        printWindow.document.close();
 
-        say(
-          "Could not make the PDF. Try Save as PNG instead."
-        );
+        say("Your flyer is ready to print in the new tab.");
 
-        button.disabled=false;
-
-        button.textContent=
-          originalText;
-
-      };
-
-
-      im.src=
-        "data:image/svg+xml;charset=utf-8,"+
-        encodeURIComponent(svg);
-
-
-    }catch(err){
-
-      console.error(
-        "PDF ERROR:",
-        err
-      );
-
-      say(
-        "Could not make the PDF. Try Save as PNG instead."
-      );
-
-      button.disabled=false;
-
-      button.textContent=
-        originalText;
-
+      }, "image/png");
     }
 
-  }
-);
+    if(photo && !photo.hidden && pic){
 
+      var photoImage = new Image();
+
+      photoImage.onload = function(){
+        drawPhotoOnCanvas(ctx, canvas, photoImage);
+        openPrintPage();
+      };
+
+      photoImage.onerror = function(){
+        button.disabled = false;
+        button.textContent = "Print flyer";
+        say("Could not load the picture. Try Save as PNG.");
+      };
+
+      photoImage.src = pic;
+
+    }else{
+      openPrintPage();
+    }
+  };
+
+  renderImage.onerror = function(){
+    button.disabled = false;
+    button.textContent = "Print flyer";
+    say("Could not prepare the flyer. Try Save as PNG.");
+  };
+
+  renderImage.src =
+    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+
+});
 
 /* ---------- picture upload ---------- */
 
