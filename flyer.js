@@ -1071,6 +1071,51 @@ function makeDraggable(el){
 
 }
 
+/* ---------- pinch to zoom on mobile ---------- */
+
+var pinchStart = null;
+
+fl.addEventListener("touchstart", function(e){
+  if(e.touches.length === 2){
+    var t0 = e.touches[0];
+    var t1 = e.touches[1];
+    var dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    pinchStart = {dist: dist, el: null};
+    
+    /* find which item is being pinched */
+    var midX = (t0.clientX + t1.clientX) / 2;
+    var midY = (t0.clientY + t1.clientY) / 2;
+    var elem = document.elementFromPoint(midX, midY);
+    if(elem && elem.closest("[data-d]")){
+      pinchStart.el = elem.closest("[data-d]");
+      pinchStart.id = pinchStart.el.id;
+    }
+  }
+}, false);
+
+fl.addEventListener("touchmove", function(e){
+  if(e.touches.length === 2 && pinchStart && pinchStart.el){
+    var t0 = e.touches[0];
+    var t1 = e.touches[1];
+    var dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    var ratio = dist / pinchStart.dist;
+    
+    var id = pinchStart.id;
+    if(!T[id]) T[id] = {x:0, y:0, r:0, s:1};
+    
+    T[id].s = Math.max(0.5, Math.min(3, T[id].s * ratio));
+    applyT(id);
+    
+    pinchStart.dist = dist;
+    e.preventDefault();
+  }
+}, false);
+
+fl.addEventListener("touchend", function(e){
+  if(e.touches.length < 2){
+    pinchStart = null;
+  }
+}, false);
 
 /* ---------- built-in flyer elements ---------- */
 
@@ -1402,27 +1447,23 @@ function finishPng(canvas){
       var out =
         document.getElementById("outimg");
 
-      /*
-        Always show the resulting PNG underneath
-        the controls. This is especially useful
-        on phones.
-      */
       out.src =
         URL.createObjectURL(blob);
 
       out.style.display = "block";
 
-      /*
-        Give the user a very obvious mobile
-        instruction.
-      */
       say(
         "Your PNG is ready below. Long-press it to save."
       );
 
-      /*
-        If a download helper exists, try it too.
-      */
+      /* Scroll to the image on mobile */
+      setTimeout(function(){
+        out.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }, 100);
+
       if(typeof dl !== "undefined" && dl){
 
         dl.save({
@@ -1432,11 +1473,6 @@ function finishPng(canvas){
           data:blob
 
         }).catch(function(){
-
-          /*
-            Mobile browsers may reject automatic
-            downloads. The image below remains available.
-          */
 
         });
 
@@ -1453,15 +1489,6 @@ function finishPng(canvas){
     );
   }
 }
-
-
-document.getElementById("save")
-  .addEventListener(
-    "click",
-    savePng
-  );
-
-
 /* ---------- collapsible sections ---------- */
 
 var mq=
