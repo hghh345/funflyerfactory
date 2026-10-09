@@ -398,7 +398,6 @@ function say(t){
 document.getElementById("print").addEventListener("click", function(){
 
   var button = this;
-
   button.disabled = true;
   button.textContent = "Preparing flyer...";
 
@@ -410,12 +409,7 @@ document.getElementById("print").addEventListener("click", function(){
   var H = size[1];
 
   var flyer = document.getElementById("fl");
-  var photo = document.getElementById("oPic");
 
-  /*
-    Render the flyer and photo together directly
-    to a canvas, using the same approach as Save PNG.
-  */
   var clone = flyer.cloneNode(true);
   clone.removeAttribute("id");
 
@@ -424,7 +418,6 @@ document.getElementById("print").addEventListener("click", function(){
   });
 
   var clonedPic = clone.querySelector("#oPic");
-
   if(clonedPic){
     clonedPic.removeAttribute("src");
     clonedPic.setAttribute("hidden", "");
@@ -437,7 +430,6 @@ document.getElementById("print").addEventListener("click", function(){
   clone.style.boxShadow = "none";
 
   var css = "";
-
   document.querySelectorAll("style").forEach(function(s){
     css += s.textContent + "\n";
   });
@@ -454,8 +446,7 @@ document.getElementById("print").addEventListener("click", function(){
 
   css = css.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-  var svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">' +
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">' +
     '<foreignObject width="100%" height="100%">' +
     '<div xmlns="http://www.w3.org/1999/xhtml">' +
     '<style>' + css + '</style>' +
@@ -474,7 +465,6 @@ document.getElementById("print").addEventListener("click", function(){
     ctx.drawImage(renderImage, 0, 0, W, H);
 
     function openPrintPage(){
-
       canvas.toBlob(function(blob){
 
         button.disabled = false;
@@ -486,59 +476,64 @@ document.getElementById("print").addEventListener("click", function(){
         }
 
         var imageURL = URL.createObjectURL(blob);
-        var printWindow = window.open("", "_blank");
 
-        if(!printWindow){
-          say("Your flyer is ready. Use Save as PNG, then print the image.");
-          return;
-        }
-
-        printWindow.document.open();
-        printWindow.document.write(
-          '<!DOCTYPE html><html><head>' +
-          '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-          '<title>Print flyer</title>' +
-          '<style>' +
-          'html,body{margin:0;padding:0;background:#fff}' +
-          'body{display:flex;justify-content:center;align-items:flex-start}' +
-          'img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain}' +
-          '@media print{' +
-          '@page{margin:0}' +
-          'html,body{width:100%;height:100%;margin:0;padding:0}' +
-          'img{width:100%;height:auto;max-height:100vh;object-fit:contain}' +
-          '}' +
-          '</style></head><body>' +
-          '<img id="printFlyer" src="' + imageURL + '" alt="Flyer to print">' +
-          '<script>' +
-          'var p=document.getElementById("printFlyer");' +
-          'p.onload=function(){setTimeout(function(){window.print()},500)};' +
-          '<\/script>' +
-          '</body></html>'
-        );
-        printWindow.document.close();
-
-        say("Your flyer is ready to print in the new tab.");
+        canvas.toBlob(function(pdfBlob){
+          try{
+            var pdfLink = document.createElement("a");
+            pdfLink.href = imageURL;
+            pdfLink.download = "funflyer-" + W + "x" + H + ".png";
+            pdfLink.style.display = "none";
+            document.body.appendChild(pdfLink);
+            pdfLink.click();
+            document.body.removeChild(pdfLink);
+            say("Flyer downloaded. Open it and print from your image viewer.");
+          }catch(e){
+            var printWindow = window.open("", "_blank");
+            if(!printWindow){
+              say("Could not open print window. Use Save as PNG instead.");
+              return;
+            }
+            printWindow.document.open();
+            printWindow.document.write(
+              '<!DOCTYPE html><html><head>' +
+              '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+              '<title>Print flyer</title>' +
+              '<style>' +
+              'html,body{margin:0;padding:0;width:100%;height:100%}' +
+              'body{display:flex;justify-content:center;align-items:center}' +
+              'img{display:block;width:auto;height:auto;max-width:100vw;max-height:100vh}' +
+              '@media print{' +
+              '@page{margin:0;size:auto}' +
+              'body{margin:0;padding:0;width:100%;height:100%}' +
+              'img{width:100%;height:auto}' +
+              '}' +
+              '</style></head><body>' +
+              '<img src="' + imageURL + '" alt="Flyer">' +
+              '</body></html>'
+            );
+            printWindow.document.close();
+            setTimeout(function(){
+              printWindow.focus();
+              printWindow.print();
+            }, 500);
+          }
+        }, "image/png");
 
       }, "image/png");
     }
 
-    if(photo && !photo.hidden && pic){
-
+    if(document.getElementById("oPic") && !document.getElementById("oPic").hidden && pic){
       var photoImage = new Image();
-
       photoImage.onload = function(){
         drawPhotoOnCanvas(ctx, canvas, photoImage);
         openPrintPage();
       };
-
       photoImage.onerror = function(){
         button.disabled = false;
         button.textContent = "Print flyer";
         say("Could not load the picture. Try Save as PNG.");
       };
-
       photoImage.src = pic;
-
     }else{
       openPrintPage();
     }
@@ -550,8 +545,7 @@ document.getElementById("print").addEventListener("click", function(){
     say("Could not prepare the flyer. Try Save as PNG.");
   };
 
-  renderImage.src =
-    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  renderImage.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 
 });
 
