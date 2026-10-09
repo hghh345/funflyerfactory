@@ -1192,16 +1192,24 @@ function savePng(){
 
   say("Making your PNG...");
 
-  /*
-    First render the flyer without relying on the
-    uploaded image being preserved inside foreignObject.
-  */
+  /* Clone and apply all transforms before exporting */
   var n = fl.cloneNode(true);
 
   n.removeAttribute("id");
 
   n.querySelectorAll(".sel").forEach(function(e){
     e.classList.remove("sel");
+  });
+
+  /* Apply all the transform positions to cloned elements */
+  Object.keys(T).forEach(function(id){
+    var el = n.querySelector("#"+id);
+    if(el && T[id]){
+      var t = T[id];
+      el.style.translate = t.x+"cqw "+t.y+"cqw";
+      el.style.rotate = t.r+"deg";
+      el.style.scale = t.s;
+    }
   });
 
   var clonedPic = n.querySelector("#oPic");
@@ -1268,9 +1276,6 @@ function savePng(){
 
       var ctx = canvas.getContext("2d");
 
-      /*
-        Draw the flyer itself.
-      */
       ctx.drawImage(
         flyerImg,
         0,
@@ -1279,10 +1284,6 @@ function savePng(){
         H
       );
 
-      /*
-        NOW draw the uploaded photo directly onto
-        the canvas. This is the important part.
-      */
       if(pic){
 
         var photo = new Image();
@@ -1302,10 +1303,6 @@ function savePng(){
 
           console.error("PHOTO EXPORT ERROR");
 
-          /*
-            Even if the photo fails, still save
-            the rest of the flyer.
-          */
           finishPng(canvas);
         };
 
