@@ -1321,11 +1321,17 @@ fl.addEventListener(
 /* ---------- PNG ---------- */
 function savePng(){
 
-  var z=PX[+E.sz.value];
-  var W=z[0];
-  var H=z[1];
+  var z = PX[+E.sz.value];
+  var W = z[0];
+  var H = z[1];
 
-  var n=fl.cloneNode(true);
+  say("Making your PNG...");
+
+  /*
+    First render the flyer without relying on the
+    uploaded image being preserved inside foreignObject.
+  */
+  var n = fl.cloneNode(true);
 
   n.removeAttribute("id");
 
@@ -1333,249 +1339,299 @@ function savePng(){
     e.classList.remove("sel");
   });
 
-  /*
-    Make absolutely sure the uploaded picture is
-    included in the exported flyer.
+  var clonedPic = n.querySelector("#oPic");
 
-    The live flyer already has the correct data URL,
-    but we explicitly put that data URL onto the
-    cloned picture for mobile browsers.
-  */
-  var exportedPic=n.querySelector("#oPic");
-
-  if(exportedPic && pic){
-
-    exportedPic.setAttribute(
-      "src",
-      pic
-    );
-
-    exportedPic.removeAttribute(
-      "hidden"
-    );
-
-    exportedPic.style.display=
-      "block";
-
-    exportedPic.style.visibility=
-      "visible";
-
-    exportedPic.style.opacity=
-      "1";
-
-    exportedPic.style.position=
-      "relative";
-
-    exportedPic.style.zIndex=
-      "5";
-
-    exportedPic.style.width=
-      "auto";
-
-    exportedPic.style.height=
-      "auto";
-
-    exportedPic.style.maxWidth=
-      "80cqw";
-
-    exportedPic.style.maxHeight=
-      "50cqw";
-
-    exportedPic.style.objectFit=
-      "contain";
-
+  if(clonedPic){
+    clonedPic.removeAttribute("src");
+    clonedPic.setAttribute("hidden","");
+    clonedPic.style.display="none";
   }
 
-  n.style.width=W+"px";
-  n.style.height=H+"px";
-  n.style.aspectRatio="auto";
-  n.style.boxShadow="none";
+  n.style.width = W+"px";
+  n.style.height = H+"px";
+  n.style.aspectRatio = "auto";
+  n.style.boxShadow = "none";
 
-  var css="";
+  var css = "";
 
   document.querySelectorAll("style").forEach(function(s){
-    css+=s.textContent+"\n";
+    css += s.textContent + "\n";
   });
 
-  var sheets=document.querySelectorAll(
-    'link[rel="stylesheet"]'
-  );
-
-  sheets.forEach(function(link){
-
+  document.querySelectorAll('link[rel="stylesheet"]').forEach(function(link){
     try{
-
       if(link.sheet && link.sheet.cssRules){
-
-        for(
-          var i=0;
-          i<link.sheet.cssRules.length;
-          i++
-        ){
-
-          css+=
-            link.sheet.cssRules[i].cssText+
-            "\n";
-
+        for(var i=0;i<link.sheet.cssRules.length;i++){
+          css += link.sheet.cssRules[i].cssText + "\n";
         }
-
       }
-
     }catch(e){}
-
   });
 
-  css=
-    css
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;");
+  css = css
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;");
 
-  var svg=
+  var svg =
     '<svg xmlns="http://www.w3.org/2000/svg"' +
     ' width="'+W+'" height="'+H+'">' +
 
-    '<foreignObject width="100%" height="100%">' +
+      '<foreignObject width="100%" height="100%">' +
 
-    '<div xmlns="http://www.w3.org/1999/xhtml">' +
+        '<div xmlns="http://www.w3.org/1999/xhtml">' +
 
-    '<style>'+css+'</style>' +
+          '<style>'+css+'</style>' +
 
-    new XMLSerializer()
-      .serializeToString(n) +
+          new XMLSerializer().serializeToString(n) +
 
-    '</div>' +
+        '</div>' +
 
-    '</foreignObject>' +
+      '</foreignObject>' +
 
     '</svg>';
 
-  var im=new Image();
+  var flyerImg = new Image();
 
-  /*
-    Important for mobile browsers:
-    wait for the exported SVG/image to finish loading
-    before creating the PNG.
-  */
-  im.onload=function(){
+  flyerImg.onload = function(){
 
     try{
 
-      var c=document.createElement("canvas");
+      var canvas = document.createElement("canvas");
 
-      c.width=W;
-      c.height=H;
+      canvas.width = W;
+      canvas.height = H;
 
-      var ctx=c.getContext("2d");
+      var ctx = canvas.getContext("2d");
 
+      /*
+        Draw the flyer itself.
+      */
       ctx.drawImage(
-        im,
+        flyerImg,
         0,
         0,
         W,
         H
       );
 
-      c.toBlob(
-        function(b){
+      /*
+        NOW draw the uploaded photo directly onto
+        the canvas. This is the important part.
+      */
+      if(pic){
 
-          if(!b){
+        var photo = new Image();
 
-            say(
-              "Could not make the PNG. Screenshot the flyer instead."
-            );
+        photo.onload = function(){
 
-            return;
+          drawPhotoOnCanvas(
+            ctx,
+            canvas,
+            photo
+          );
 
-          }
+          finishPng(canvas);
+        };
 
-          function showImg(){
+        photo.onerror = function(){
 
-            var o=
-              document.getElementById("outimg");
+          console.error("PHOTO EXPORT ERROR");
 
-            o.src=
-              URL.createObjectURL(b);
+          /*
+            Even if the photo fails, still save
+            the rest of the flyer.
+          */
+          finishPng(canvas);
+        };
 
-            o.style.display=
-              "block";
+        photo.src = pic;
 
-            say(
-              "Right-click or long-press the picture below to save it."
-            );
+      }else{
 
-          }
+        finishPng(canvas);
 
-          if(!dl){
+      }
 
-            showImg();
-            return;
+    }catch(err){
 
-          }
-
-          dl.save({
-            filename:
-              "funflyer-"+W+"x"+H+".png",
-            data:b
-          })
-          .then(function(){
-
-            say("Saved.");
-
-          })
-          .catch(function(e){
-
-            if(
-              e &&
-              e.code==="declined"
-            ){
-
-              say("Save cancelled.");
-
-            }else{
-
-              showImg();
-
-            }
-
-          });
-
-        },
-        "image/png"
-      );
-
-    }catch(x){
-
-      console.error(
-        "PNG EXPORT ERROR:",
-        x
-      );
+      console.error("PNG EXPORT ERROR:",err);
 
       say(
         "Could not make the PNG. Screenshot the flyer instead."
       );
-
     }
-
   };
 
-  im.onerror=function(){
+  flyerImg.onerror = function(){
 
-    console.error(
-      "PNG IMAGE LOAD ERROR"
-    );
+    console.error("FLYER SVG EXPORT ERROR");
 
     say(
       "Could not make the PNG. Screenshot the flyer instead."
     );
-
   };
 
-  say("Making your PNG...");
-
-  im.src=
+  flyerImg.src =
     "data:image/svg+xml;charset=utf-8,"+
     encodeURIComponent(svg);
+}
 
+
+/*
+  Draw the uploaded photo onto the export canvas
+  using the SAME position as the live flyer.
+*/
+function drawPhotoOnCanvas(ctx,canvas,photo){
+
+  var livePic = document.getElementById("oPic");
+
+  if(!livePic || livePic.hidden){
+    return;
+  }
+
+  var flyerRect = fl.getBoundingClientRect();
+  var picRect = livePic.getBoundingClientRect();
+
+  if(
+    !flyerRect.width ||
+    !flyerRect.height ||
+    !picRect.width ||
+    !picRect.height
+  ){
+    return;
+  }
+
+  /*
+    Convert the browser's displayed coordinates
+    into the actual exported flyer coordinates.
+  */
+  var scaleX = canvas.width / flyerRect.width;
+  var scaleY = canvas.height / flyerRect.height;
+
+  var x =
+    (picRect.left - flyerRect.left) * scaleX;
+
+  var y =
+    (picRect.top - flyerRect.top) * scaleY;
+
+  var w =
+    picRect.width * scaleX;
+
+  var h =
+    picRect.height * scaleY;
+
+  /*
+    Preserve the photo's rotation.
+  */
+  var t = T["oPic"];
+
+  var rotation = 0;
+
+  if(t){
+    rotation = (t.r || 0) * Math.PI / 180;
+  }
+
+  /*
+    Find the center of the photo.
+  */
+  var cx = x + w/2;
+  var cy = y + h/2;
+
+  ctx.save();
+
+  ctx.translate(cx,cy);
+
+  ctx.rotate(rotation);
+
+  /*
+    Reproduce the little -2deg photo tilt
+    from the CSS.
+  */
+  ctx.rotate(-2 * Math.PI / 180);
+
+  ctx.drawImage(
+    photo,
+    -w/2,
+    -h/2,
+    w,
+    h
+  );
+
+  ctx.restore();
+}
+
+
+/*
+  Turn the finished canvas into the PNG.
+*/
+function finishPng(canvas){
+
+  try{
+
+    canvas.toBlob(function(blob){
+
+      if(!blob){
+
+        say(
+          "Could not make the PNG. Screenshot the flyer instead."
+        );
+
+        return;
+      }
+
+      var out =
+        document.getElementById("outimg");
+
+      /*
+        Always show the resulting PNG underneath
+        the controls. This is especially useful
+        on phones.
+      */
+      out.src =
+        URL.createObjectURL(blob);
+
+      out.style.display = "block";
+
+      /*
+        Give the user a very obvious mobile
+        instruction.
+      */
+      say(
+        "Your PNG is ready below. Long-press it to save."
+      );
+
+      /*
+        If a download helper exists, try it too.
+      */
+      if(typeof dl !== "undefined" && dl){
+
+        dl.save({
+          filename:
+            "funflyer-"+canvas.width+"x"+canvas.height+".png",
+
+          data:blob
+
+        }).catch(function(){
+
+          /*
+            Mobile browsers may reject automatic
+            downloads. The image below remains available.
+          */
+
+        });
+
+      }
+
+    },"image/png");
+
+  }catch(err){
+
+    console.error("PNG FINISH ERROR:",err);
+
+    say(
+      "Could not make the PNG. Screenshot the flyer instead."
+    );
+  }
 }
 
 
