@@ -1627,7 +1627,11 @@ document.getElementById(
 
   }
 );
-
+document.getElementById("save")
+  .addEventListener(
+    "click",
+    savePng
+  );
 
 /* ---------- start ---------- */
 
