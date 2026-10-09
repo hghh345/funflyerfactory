@@ -1209,10 +1209,8 @@ function savePng(){
     }
   });
 
-  /* KEEP the photo in the cloned flyer - don't hide it */
   var clonedPic = n.querySelector("#oPic");
   if(clonedPic && pic){
-    /* Set it to display but don't hide - we'll render it from the data URL */
     clonedPic.src = pic;
     clonedPic.hidden = false;
   } else if(clonedPic){
@@ -1254,9 +1252,10 @@ function savePng(){
       '</foreignObject>' +
     '</svg>';
 
+  var svgDataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  
   var flyerImg = new Image();
-
-  flyerImg.onload = function(){
+  var loadHandler = function(){
     try{
       var canvas = document.createElement("canvas");
       canvas.width = W;
@@ -1266,19 +1265,24 @@ function savePng(){
       ctx.drawImage(flyerImg, 0, 0, W, H);
 
       finishPng(canvas);
-
     }catch(err){
       console.error("PNG EXPORT ERROR:",err);
       say("Could not make the PNG. Screenshot the flyer instead.");
     }
+    flyerImg.removeEventListener("load", loadHandler);
+    flyerImg.removeEventListener("error", errorHandler);
   };
 
-  flyerImg.onerror = function(){
+  var errorHandler = function(){
     console.error("FLYER SVG EXPORT ERROR");
     say("Could not make the PNG. Screenshot the flyer instead.");
+    flyerImg.removeEventListener("load", loadHandler);
+    flyerImg.removeEventListener("error", errorHandler);
   };
 
-  flyerImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  flyerImg.addEventListener("load", loadHandler);
+  flyerImg.addEventListener("error", errorHandler);
+  flyerImg.src = svgDataUrl;
 }
 
 
