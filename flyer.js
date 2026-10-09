@@ -395,54 +395,103 @@ function say(t){
 
 /* ---------- PDF ---------- */
 
-document.getElementById("save").addEventListener("click", function(){
 
+/* ---------- download flyer as PNG ---------- */
+
+document.getElementById("save").addEventListener("click", async function () {
   var button = this;
+  var originalText = button.textContent;
+
+  if (button.disabled) return;
+
   button.disabled = true;
-  button.textContent = "Generating...";
+  button.textContent = "Making your flyer...";
+  say("Preparing your flyer for download...");
 
-  say("Creating your flyer...");
+  try {
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
 
-  var z = +E.sz.value;
-  var size = PX[z];
-  var W = size[0];
-  var H = size[1];
+    var flyer = document.getElementById("fl");
 
-  html2canvas(document.getElementById("fl"), {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: null,
-    logging: false
-  }).then(function(canvas){
+    if (!flyer || typeof html2canvas !== "function") {
+      throw new Error("Flyer or image export library is unavailable.");
+    }
 
-    canvas.toBlob(function(blob){
+    var z = Number(E.sz.value);
+    var size = PX[z];
 
-      button.disabled = false;
-      button.textContent = "Generate Flyer";
+    if (!size) {
+      throw new Error("Invalid flyer size.");
+    }
 
-      if(!blob){
-        say("Could not create flyer. Try again.");
-        return;
+    var W = size[0];
+    var H = size[1];
+
+    // Wait for the flyer picture to finish loading.
+    var picture = document.getElementById("oPic");
+
+    if (picture && !picture.hidden && picture.src && !picture.complete) {
+      await new Promise(function (resolve) {
+        picture.onload = resolve;
+        picture.onerror = resolve;
+      });
+    }
+
+    var canvas = await html2canvas(flyer, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false,
+      onclone: function (clonedDoc) {
+        var clonedFlyer = clonedDoc.getElementById("fl");
+
+        // Keep selection outlines out of the downloaded image.
+        clonedDoc.querySelectorAll(".sel").forEach(function (el) {
+          el.classList.remove("sel");
+        });
+
+        if (clonedFlyer) {
+          clonedFlyer.style.width = "100%";
+          clonedFlyer.style.height = "auto";
+        }
       }
+    });
 
-      var link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "funflyer-" + W + "x" + H + ".png";
-      link.click();
+    var blob = await new Promise(function (resolve) {
+      canvas.toBlob(resolve, "image/png");
+    });
 
-      say("Flyer downloaded! You can now submit it.");
+    if (!blob) {
+      throw new Error("PNG creation failed.");
+    }
 
-    }, "image/png");
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
 
-  }).catch(function(err){
+    link.href = url;
+    link.download = "funflyer-" + W + "x" + H + ".png";
+    link.style.display = "none";
 
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    // Give the browser time to begin the download.
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 10000);
+
+    say("Your flyer is ready! Check your downloads.");
+
+  } catch (err) {
+    console.error("Flyer download failed:", err);
+    say("Download failed. Please try again or take a screenshot.");
+  } finally {
     button.disabled = false;
-    button.textContent = "Generate Flyer";
-    console.error("html2canvas error:", err);
-    say("Could not create flyer. Try again.");
-
-  });
-
+    button.textContent = originalText;
+  }
 });
 
 /* ---------- picture upload ---------- */
