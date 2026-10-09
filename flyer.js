@@ -1363,53 +1363,39 @@ function drawPhotoOnCanvas(ctx,canvas,photo){
     return;
   }
 
-  /*
-    Convert the browser's displayed coordinates
-    into the actual exported flyer coordinates.
-  */
+  /* Use the T object transforms instead of browser coordinates */
+  var t = T["oPic"];
+  
+  if(!t){
+    return;
+  }
+
   var scaleX = canvas.width / flyerRect.width;
   var scaleY = canvas.height / flyerRect.height;
 
-  var x =
-    (picRect.left - flyerRect.left) * scaleX;
+  /* Get the live picture's base position and size */
+  var x = (picRect.left - flyerRect.left) * scaleX;
+  var y = (picRect.top - flyerRect.top) * scaleY;
+  var w = picRect.width * scaleX;
+  var h = picRect.height * scaleY;
 
-  var y =
-    (picRect.top - flyerRect.top) * scaleY;
+  /* Apply the transforms from T */
+  var cqwToPx = flyerRect.width / 100;
+  var offsetX = t.x * cqwToPx * scaleX;
+  var offsetY = t.y * cqwToPx * scaleY;
+  var scale = t.s;
+  var rotation = (t.r || 0) * Math.PI / 180;
 
-  var w =
-    picRect.width * scaleX;
-
-  var h =
-    picRect.height * scaleY;
-
-  /*
-    Preserve the photo's rotation.
-  */
-  var t = T["oPic"];
-
-  var rotation = 0;
-
-  if(t){
-    rotation = (t.r || 0) * Math.PI / 180;
-  }
-
-  /*
-    Find the center of the photo.
-  */
-  var cx = x + w/2;
-  var cy = y + h/2;
+  /* Calculate center with offset applied */
+  var cx = x + w/2 + offsetX;
+  var cy = y + h/2 + offsetY;
 
   ctx.save();
 
-  ctx.translate(cx,cy);
-
+  ctx.translate(cx, cy);
   ctx.rotate(rotation);
-
-  /*
-    Reproduce the little -2deg photo tilt
-    from the CSS.
-  */
   ctx.rotate(-2 * Math.PI / 180);
+  ctx.scale(scale, scale);
 
   ctx.drawImage(
     photo,
