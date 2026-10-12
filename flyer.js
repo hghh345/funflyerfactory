@@ -602,205 +602,198 @@
    * Export-only fixes for effects html2canvas cannot reliably reproduce.
    * The live flyer preview is left unchanged.
    */
-  function prepareCloneForCanvas(clone) {
-    var headline = clone.querySelector("#oHead");
-    var styleIndex = Number(E.wa.value);
+ 
+function prepareCloneForCanvas(clone) {
+  var headline = clone.querySelector("#oHead");
+  var styleIndex = Number(E.wa.value);
 
-    var palettes = {
-      1: [
-        "#ff2020", "#ff8a00", "#ffe600", "#18b83c",
-        "#008cff", "#8b35ff", "#ff42b8"
-      ],
-      4: [
-        "#ffffff", "#b8d9ff", "#5b77a9", "#f4f8ff",
-        "#7d9acb", "#eaf4ff", "#ffffff"
-      ],
-      5: [
-        "#fff200", "#ffb000", "#ff6a00", "#e51b00",
-        "#ff8a00", "#ffe600", "#cf1600"
-      ]
-    };
+  var palettes = {
+    1: [
+      "#ff2020", "#ff8a00", "#ffe600", "#18b83c",
+      "#008cff", "#8b35ff", "#ff42b8"
+    ],
+    4: [
+      "#ffffff", "#b8d9ff", "#5b77a9", "#f4f8ff",
+      "#7d9acb", "#eaf4ff", "#ffffff"
+    ],
+    5: [
+      "#fff200", "#ffb000", "#ff6a00", "#e51b00",
+      "#ff8a00", "#ffe600", "#cf1600"
+    ]
+  };
 
-    if (headline && palettes[styleIndex]) {
-      var hasLetterSpans = headline.querySelector(".l");
+  /* Preserve gradient word-art colors in exported PNGs. */
+  if (headline && palettes[styleIndex]) {
+    if (!headline.querySelector(".l")) {
+      var text = headline.textContent || "";
+      headline.textContent = "";
 
-      if (!hasLetterSpans) {
-        var text = headline.textContent || "";
-        headline.textContent = "";
+      text.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
 
-        text.split(/(\s+)/).forEach(function (part) {
-          if (!part) return;
-
-          if (/^\s+$/.test(part)) {
-            headline.appendChild(document.createTextNode(part));
-            return;
-          }
-
-          var word = document.createElement("span");
-          word.className = "wd";
-
-          Array.from(part).forEach(function (character) {
-            var letter = document.createElement("span");
-            letter.className = "l export-wordart-letter";
-            letter.textContent = character;
-            word.appendChild(letter);
-          });
-
-          headline.appendChild(word);
-        });
-      }
-
-      ["w1", "w4", "w5"].forEach(function (name) {
-        headline.classList.remove(name);
-      });
-
-      headline.querySelectorAll(".l").forEach(function (letter, index) {
-        ["w1", "w4", "w5"].forEach(function (name) {
-          letter.classList.remove(name);
-        });
-
-        var colors = palettes[styleIndex];
-        var color = colors[index % colors.length];
-
-        letter.style.background = "none";
-        letter.style.backgroundImage = "none";
-        letter.style.backgroundClip = "border-box";
-        letter.style.webkitBackgroundClip = "border-box";
-
-        letter.style.setProperty("color", color, "important");
-        letter.style.setProperty(
-          "-webkit-text-fill-color", color, "important"
-        );
-
-        letter.style.filter = "none";
-
-        if (styleIndex === 1) {
-          letter.style.webkitTextStroke = "0.3cqw #000";
-          letter.style.textShadow = "0.8cqw 0.8cqw 0 #000";
-        } else if (styleIndex === 4) {
-          letter.style.webkitTextStroke = "0.35cqw #002044";
-          letter.style.textShadow =
-            "0.7cqw 0.7cqw 0 rgba(0,0,0,.55)";
-        } else {
-          letter.style.webkitTextStroke = "0.4cqw #3b0000";
-          letter.style.textShadow = "0.6cqw 0.6cqw 0 #000";
+        if (/^\s+$/.test(part)) {
+          headline.appendChild(document.createTextNode(part));
+          return;
         }
+
+        var word = document.createElement("span");
+        word.className = "wd";
+
+        Array.from(part).forEach(function (character) {
+          var letter = document.createElement("span");
+          letter.className = "l export-wordart-letter";
+          letter.textContent = character;
+          word.appendChild(letter);
+        });
+
+        headline.appendChild(word);
       });
     }
 
-    /* Rebuild the burst as an SVG image for reliable export. */
-    var burst = clone.querySelector("#oBurst");
-
-    if (burst && burst.textContent.trim()) {
-      var accent = getComputedStyle(fl)
-        .getPropertyValue("--ac").trim() || "#ff1493";
-
-      var points = [];
-
-      for (var i = 0; i < 32; i++) {
-        var angle = i * Math.PI / 16;
-        var radius = i % 2 ? 38 : 50;
-
-        points.push(
-          (50 + radius * Math.sin(angle)).toFixed(1) + "," +
-          (50 - radius * Math.cos(angle)).toFixed(1)
-        );
-      }
-
-      var svg =
-        '<svg xmlns="http://www.w3.org/2000/svg" ' +
-        'width="100" height="100" viewBox="0 0 100 100">' +
-        '<polygon points="' + points.join(" ") +
-        '" fill="' + accent + '"/></svg>';
-
-      var shape = document.createElement("img");
-      shape.alt = "";
-      shape.setAttribute("aria-hidden", "true");
-
-      shape.src =
-        "data:image/svg+xml;charset=utf-8," +
-        encodeURIComponent(svg);
-
-      shape.style.cssText =
-        "position:absolute;inset:0;width:100%;height:100%;" +
-        "display:block;z-index:0;pointer-events:none;";
-
-      var label = document.createElement("span");
-      label.textContent = burst.textContent;
-
-      label.style.cssText =
-        "position:absolute;inset:0;z-index:1;" +
-        "display:flex;align-items:center;justify-content:center;" +
-        "width:100%;height:100%;box-sizing:border-box;" +
-        "padding:8%;text-align:center;";
-
-      burst.textContent = "";
-      burst.appendChild(shape);
-      burst.appendChild(label);
-
-      burst.style.setProperty(
-        "background", "transparent", "important"
-      );
-
-      burst.style.setProperty("clip-path", "none", "important");
-      burst.style.setProperty(
-        "-webkit-clip-path", "none", "important"
-      );
-
-      burst.style.setProperty("overflow", "visible", "important");
-    }
-
-    /* Preserve tear-off tab dimensions and vertical orientation. */
-    var tabNodes = clone.querySelectorAll(".tab");
-    var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-
-    tabNodes.forEach(function (tab) {
-      tab.style.setProperty(
-        "writing-mode", "vertical-rl", "important"
-      );
-
-      tab.style.setProperty(
-        "-webkit-writing-mode", "vertical-rl", "important"
-      );
-
-      tab.style.setProperty(
-        "text-orientation", "mixed", "important"
-      );
-
-      tab.style.setProperty(
-        "transform", "rotate(180deg)", "important"
-      );
-
-      tab.style.setProperty(
-        "-webkit-transform", "rotate(180deg)", "important"
-      );
-
-      tab.style.removeProperty("width");
-      tab.style.removeProperty("height");
-
-      tab.style.setProperty("flex", "1", "important");
-      tab.style.setProperty("min-width", "0", "important");
-      tab.style.setProperty("padding", "4px", "important");
-      tab.style.setProperty("white-space", "nowrap", "important");
-      tab.style.setProperty("line-height", "1", "important");
-      tab.style.setProperty("overflow", "hidden", "important");
-
-      tab.style.setProperty(
-        "font-size", (width * 0.027) + "px", "important"
-      );
+    ["w1", "w4", "w5"].forEach(function (name) {
+      headline.classList.remove(name);
     });
-  } // IMPORTANT: closes prepareCloneForCanvas
 
-  async function generatePNG() {
-    if (busy) return;
+    headline.querySelectorAll(".l").forEach(function (letter, index) {
+      ["w1", "w4", "w5"].forEach(function (name) {
+        letter.classList.remove(name);
+      });
 
-    if (typeof window.html2canvas !== "function") {
-      say(
-        "The PNG tool didn't load. Check your internet connection " +
-        "and reload the page."
+      var color = palettes[styleIndex][index % palettes[styleIndex].length];
+
+      letter.style.background = "none";
+      letter.style.backgroundImage = "none";
+      letter.style.backgroundClip = "border-box";
+      letter.style.webkitBackgroundClip = "border-box";
+      letter.style.setProperty("color", color, "important");
+      letter.style.setProperty("-webkit-text-fill-color", color, "important");
+      letter.style.filter = "none";
+
+      if (styleIndex === 1) {
+        letter.style.webkitTextStroke = "0.3cqw #000";
+        letter.style.textShadow = "0.8cqw 0.8cqw 0 #000";
+      } else if (styleIndex === 4) {
+        letter.style.webkitTextStroke = "0.35cqw #002044";
+        letter.style.textShadow = "0.7cqw 0.7cqw 0 rgba(0,0,0,.55)";
+      } else {
+        letter.style.webkitTextStroke = "0.4cqw #3b0000";
+        letter.style.textShadow = "0.6cqw 0.6cqw 0 #000";
+      }
+    });
+  }
+
+  /* Make the burst shape export more reliably. */
+  var burst = clone.querySelector("#oBurst");
+
+  if (burst && burst.textContent.trim()) {
+    var accent = getComputedStyle(fl)
+      .getPropertyValue("--ac").trim() || "#ff1493";
+
+    var points = [];
+
+    for (var i = 0; i < 32; i++) {
+      var angle = i * Math.PI / 16;
+      var radius = i % 2 ? 38 : 50;
+
+      points.push(
+        (50 + radius * Math.sin(angle)).toFixed(1) + "," +
+        (50 - radius * Math.cos(angle)).toFixed(1)
       );
-      return;
     }
+
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" ' +
+      'width="100" height="100" viewBox="0 0 100 100">' +
+      '<polygon points="' + points.join(" ") +
+      '" fill="' + accent + '"/></svg>';
+
+    var shape = document.createElement("img");
+    shape.alt = "";
+    shape.setAttribute("aria-hidden", "true");
+    shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    shape.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;" +
+      "display:block;z-index:0;pointer-events:none;";
+
+    var label = document.createElement("span");
+    label.textContent = burst.textContent;
+    label.style.cssText =
+      "position:absolute;inset:0;z-index:1;" +
+      "display:flex;align-items:center;justify-content:center;" +
+      "width:100%;height:100%;box-sizing:border-box;" +
+      "padding:8%;text-align:center;";
+
+    burst.textContent = "";
+    burst.appendChild(shape);
+    burst.appendChild(label);
+
+    burst.style.setProperty("background", "transparent", "important");
+    burst.style.setProperty("clip-path", "none", "important");
+    burst.style.setProperty("-webkit-clip-path", "none", "important");
+    burst.style.setProperty("overflow", "visible", "important");
+  }
+
+  /* Rebuild flyer patterns with pixel-based sizing for export. */
+  var flyerStyle = getComputedStyle(fl);
+  var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
+  var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
+
+  var patternClass = ["p1", "p2", "p3"].find(function (name) {
+    return clone.classList.contains(name);
+  });
+
+  clone.style.backgroundColor = exportBg;
+
+  if (patternClass === "p1") {
+    clone.style.backgroundImage =
+      "linear-gradient(45deg," + exportAccent +
+      " 25%,transparent 25%,transparent 75%," + exportAccent +
+      " 75%),linear-gradient(45deg," + exportAccent +
+      " 25%,transparent 25%,transparent 75%," + exportAccent + " 75%)";
+    clone.style.backgroundSize = "32px 32px";
+    clone.style.backgroundPosition = "0 0,16px 16px";
+  } else if (patternClass === "p2") {
+    clone.style.backgroundImage =
+      "radial-gradient(" + exportAccent + " 18%,transparent 20%)";
+    clone.style.backgroundSize = "24px 24px";
+    clone.style.backgroundPosition = "0 0";
+  } else if (patternClass === "p3") {
+    clone.style.backgroundImage =
+      "repeating-linear-gradient(0deg," + exportBg +
+      " 0 12px," + exportAccent + " 12px 24px)";
+    clone.style.backgroundSize = "auto";
+    clone.style.backgroundPosition = "0 0";
+  }
+
+  /* Fix tear-off tabs: keep text upright in the tabs,
+     give it room to wrap, and prevent clipping. */
+  var tabNodes = clone.querySelectorAll(".tab");
+
+  tabNodes.forEach(function (tab) {
+    tab.style.setProperty("writing-mode", "vertical-rl", "important");
+    tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+    tab.style.setProperty("text-orientation", "mixed", "important");
+
+    /* Undo the rotation that made exported text upside down. */
+    tab.style.setProperty("transform", "none", "important");
+    tab.style.setProperty("-webkit-transform", "none", "important");
+
+    tab.style.setProperty("flex", "1 1 0", "important");
+    tab.style.setProperty("width", "0", "important");
+    tab.style.setProperty("height", "100%", "important");
+    tab.style.setProperty("min-width", "0", "important");
+    tab.style.setProperty("min-height", "0", "important");
+    tab.style.setProperty("box-sizing", "border-box", "important");
+    tab.style.setProperty("padding", "3px 2px", "important");
+    tab.style.setProperty("font-size", "10px", "important");
+    tab.style.setProperty("line-height", "1.1", "important");
+    tab.style.setProperty("white-space", "normal", "important");
+    tab.style.setProperty("overflow", "hidden", "important");
+    tab.style.setProperty("overflow-wrap", "anywhere", "important");
+    tab.style.setProperty("word-break", "break-word", "important");
+  });
+}
+
 
     busy = true;
     g("generate").disabled = true;
