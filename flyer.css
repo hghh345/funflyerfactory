@@ -567,88 +567,58 @@ input[type=range]{
   }
 }
 
-/* ---------- print ---------- */
+/* ---------- save / print ---------- */
 
-@page{
-  size:letter portrait;
-  margin:0.35in;
-}
+document.getElementById("save").addEventListener("click", function () {
 
-@media print{
-  /* Force the containing block to be the paper width.
-     Without this, mobile browsers lay out at device width,
-     which makes the 7.5in flyer overflow and shrink to fit. */
-  html,
-  body{
-    width:8.5in!important;
-    min-width:8.5in!important;
-    max-width:8.5in!important;
-    height:auto!important;
-    margin:0!important;
-    padding:0!important;
-    background:#fff!important;
-    overflow:visible!important
+  select(null);
+  say("Opening a print preview…");
+
+  var sizeIndex = Number(E.sz.value) || 0;
+  var widths = ["7.5in","7in","6.5in","5.5in"];
+  var flyerWidth = widths[sizeIndex] || "7.5in";
+
+  var flyer = document.getElementById("fl");
+  var clone = flyer.cloneNode(true);
+
+  clone.querySelectorAll(".sel").forEach(function(el){
+    el.classList.remove("sel");
+  });
+
+  var win = window.open("", "_blank", "width=900,height=1100");
+  if(!win){
+    say("Please allow popups to save your flyer.");
+    return;
   }
 
-  /* hide everything except the flyer */
-  .title,
-  .marq,
-  .top,
-  .ctl,
-  .actionbar,
-  .hint,
-  #outimg,
-  details.sec{
-    display:none!important
-  }
+  var html =
+    '<!DOCTYPE html><html><head><meta charset="utf-8">'+
+    '<title>My Flyer</title>'+
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'+
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">'+
+    '<link rel="stylesheet" href="flyer.css">'+
+    '<style>'+
+    '@page{size:letter portrait;margin:0.35in}'+
+    'html,body{margin:0!important;padding:0!important;background:#fff!important;width:auto!important;height:auto!important}'+
+    'body{display:block!important}'+
+    '.flyer{width:'+flyerWidth+'!important;max-width:'+flyerWidth+'!important;margin:0 auto!important;box-shadow:none!important}'+
+    '</style>'+
+    '</head><body></body></html>';
 
-  /* flatten every wrapper so the flyer sits directly on the page */
-  .win,
-  .wrap,
-  .pv{
-    display:block!important;
-    width:auto!important;
-    max-width:none!important;
-    min-width:0!important;
-    height:auto!important;
-    margin:0!important;
-    padding:0!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    box-shadow:none!important;
-    grid:none!important;
-    gap:0!important;
-    position:static!important;
-    transform:none!important;
-    overflow:visible!important
-  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 
-  /* the flyer: explicit width, centered inside the 8.5in body */
-  .flyer{
-    display:block!important;
-    width:7.5in!important;
-    max-width:7.5in!important;
-    min-width:0!important;
-    height:auto!important;
-    margin:0 auto!important;
-    box-shadow:none!important;
-    page-break-inside:avoid!important;
-    break-inside:avoid!important;
-    transform:none!important;
-    zoom:1!important;
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important
-  }
+  var imported = win.document.importNode(clone, true);
+  win.document.body.appendChild(imported);
 
-  .flyer.z1{width:7in!important;max-width:7in!important}
-  .flyer.z2{width:6.5in!important;max-width:6.5in!important}
-  .flyer.z3{width:5.5in!important;max-width:5.5in!important}
-
-  .sel{outline:0!important}
-
-  .marq div{animation:none!important}
-}
+  // Give fonts + the photo a moment, then print
+  setTimeout(function(){
+    win.focus();
+    win.print();
+  }, 600);
+});
 /* ---------- collapsible control sections ---------- */
 
 details.sec{
