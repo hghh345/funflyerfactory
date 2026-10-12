@@ -793,26 +793,21 @@ if (patternClass === "p1") {
 
  
 tabNodes.forEach(function (tab) {
+  var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
   tab.style.setProperty("writing-mode", "vertical-rl", "important");
   tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
   tab.style.setProperty("text-orientation", "mixed", "important");
-
-  tab.style.setProperty("transform", "none", "important");
-  tab.style.setProperty("-webkit-transform", "none", "important");
-
-  tab.style.setProperty("flex", "1 1 0", "important");
-  tab.style.setProperty("width", "auto", "important");
-  tab.style.setProperty("height", "100%", "important");
+  tab.style.setProperty("transform", "rotate(180deg)", "important");
+  tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
+  tab.style.removeProperty("width");
+  tab.style.removeProperty("height");
+  tab.style.setProperty("flex", "1", "important");
   tab.style.setProperty("min-width", "0", "important");
-  tab.style.setProperty("min-height", "0", "important");
-  tab.style.setProperty("box-sizing", "border-box", "important");
-  tab.style.setProperty("padding", "4px 3px", "important");
-  tab.style.setProperty("font-size", "12px", "important");
-  tab.style.setProperty("line-height", "1.15", "important");
-  tab.style.setProperty("white-space", "normal", "important");
-  tab.style.setProperty("overflow", "visible", "important");
-  tab.style.setProperty("overflow-wrap", "anywhere", "important");
-  tab.style.setProperty("word-break", "normal", "important");
+  tab.style.setProperty("padding", "4px", "important");
+  tab.style.setProperty("white-space", "nowrap", "important");
+  tab.style.setProperty("line-height", "1", "important");
+  tab.style.setProperty("overflow", "hidden", "important");
+  tab.style.setProperty("font-size", (width * 0.027) + "px", "important");
 });
 }
 
