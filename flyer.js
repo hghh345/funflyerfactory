@@ -283,31 +283,29 @@
 
     /* html2canvas can invert writing-mode transforms. Keep export tabs upright
        and shrink long labels to the available tear-off height. */
-  var tabNodes = clone.querySelectorAll(".tab");
+var tabNodes = clone.querySelectorAll(".tab");
+var exportWidth = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
+
+// Give the exported tear-off section more height.
+var tabsContainer = clone.querySelector(".tabs");
+var exportTabHeight = exportWidth * 0.28;
+
+if (tabsContainer) {
+  tabsContainer.style.setProperty(
+    "height", exportTabHeight + "px", "important"
+  );
+  tabsContainer.style.setProperty("flex", "none", "important");
+}
 
 tabNodes.forEach(function (tab) {
   var labelText = (tab.textContent || "").trim();
   var length = Math.max(1, labelText.length);
 
-  var width = Number(E.sz.value) === 0
-    ? 1275
-    : (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-
-  // Use the actual exported tab dimensions.
-  var tabHeight = tab.parentElement
-    ? tab.parentElement.getBoundingClientRect().height
-    : width * 0.19;
-
-  // Larger, readable labels with a gentler reduction for long text.
-  var maxFont = width * 0.027;
-  var minFont = width * 0.014;
-  var availableHeight = tabHeight * 0.82;
+  // Calculate font size using the actual export dimensions.
+  var maxFont = exportWidth * 0.027;
+  var availableHeight = exportTabHeight * 0.82;
   var fitFont = availableHeight / length;
-
-  var fontSize = Math.max(
-    minFont,
-    Math.min(maxFont, fitFont)
-  );
+  var fontSize = Math.min(maxFont, fitFont);
 
   tab.style.setProperty("transform", "none", "important");
   tab.style.setProperty("-webkit-transform", "none", "important");
@@ -318,6 +316,7 @@ tabNodes.forEach(function (tab) {
   tab.style.setProperty("font-size", fontSize + "px", "important");
   tab.style.setProperty("line-height", "1", "important");
   tab.style.setProperty("overflow", "hidden", "important");
+  tab.style.setProperty("padding", "4px", "important");
 });
   }
 
