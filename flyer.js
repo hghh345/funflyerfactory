@@ -308,44 +308,37 @@ if (burst && burst.textContent.trim()) {
   burst.style.setProperty("overflow", "visible", "important");
 }
 
-    /* html2canvas can invert writing-mode transforms. Keep export tabs upright
-       and shrink long labels to the available tear-off height. */
+// Preserve the original tab layout in the exported flyer.
 var tabNodes = clone.querySelectorAll(".tab");
 
 tabNodes.forEach(function (tab) {
-  var labelText = (tab.textContent || "").trim();
-
-  // Keep the label as ordinary horizontal text.
-  tab.style.setProperty("writing-mode", "horizontal-tb", "important");
-  tab.style.setProperty("-webkit-writing-mode", "horizontal-tb", "important");
-  tab.style.setProperty("text-orientation", "mixed", "important");
-  tab.style.setProperty("white-space", "nowrap", "important");
-
-  // Rotate the complete word, not individual characters.
-  tab.style.setProperty("transform", "rotate(-90deg)", "important");
-  tab.style.setProperty("-webkit-transform", "rotate(-90deg)", "important");
-  tab.style.setProperty("transform-origin", "center center", "important");
-
-  // Use a readable font size based on the export width.
   var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-  var fontSize = width * 0.018;
 
-  // Reduce the font only when the complete word needs more room.
-  var availableHeight = tab.parentElement
-    ? tab.parentElement.clientHeight * 0.82
-    : width * 0.19;
+  // Restore the original vertical tab orientation.
+  tab.style.setProperty("writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("text-orientation", "mixed", "important");
+  tab.style.setProperty("transform", "rotate(180deg)", "important");
+  tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
 
-  var fitFont = availableHeight / Math.max(1, labelText.length);
-  fontSize = Math.min(fontSize, fitFont);
-
-  tab.style.setProperty("font-size", fontSize + "px", "important");
+  // Keep the original tab dimensions and layout.
+  tab.style.removeProperty("width");
+  tab.style.removeProperty("height");
+  tab.style.setProperty("flex", "1", "important");
+  tab.style.setProperty("min-width", "0", "important");
+  tab.style.setProperty("padding", "4px", "important");
+  tab.style.setProperty("white-space", "nowrap", "important");
   tab.style.setProperty("line-height", "1", "important");
   tab.style.setProperty("overflow", "hidden", "important");
-  tab.style.setProperty("display", "flex", "important");
-  tab.style.setProperty("align-items", "center", "important");
-  tab.style.setProperty("justify-content", "center", "important");
+
+  // Use the same proportional font sizing as the original CSS.
+  tab.style.setProperty(
+    "font-size",
+    (width * 0.027) + "px",
+    "important"
+  );
 });
-  }
+  
 
   async function generatePNG() {
     if (busy) return;
