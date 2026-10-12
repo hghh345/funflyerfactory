@@ -423,13 +423,27 @@ document.getElementById("save").addEventListener("click", async function () {
     }
 
     // Check the flyer picture before exporting.
-    if (picture && !picture.hidden && picture.getAttribute("src")) {
-      if (!picture.complete) {
-        await new Promise(function (resolve) {
-          picture.addEventListener("load", resolve, { once: true });
-          picture.addEventListener("error", resolve, { once: true });
-        });
+   
+    // Wait for the uploaded photo to be ready on mobile.
+    if (
+      picture &&
+      !picture.hidden &&
+      picture.getAttribute("src")
+    ) {
+      try {
+        if (typeof picture.decode === "function") {
+          await picture.decode();
+        } else if (!picture.complete) {
+          await new Promise(function (resolve) {
+            picture.addEventListener("load", resolve, { once: true });
+            picture.addEventListener("error", resolve, { once: true });
+          });
+        }
+      } catch (err) {
+        console.warn("Photo decode issue:", err);
       }
+    }
+
 
       // If the picture failed to load, omit it from this PNG.
       // Restore it in the editor immediately after export.
@@ -504,11 +518,7 @@ blob = await htmlToImage.toBlob(flyer, {
     say("Couldn't make the PNG. Check the browser console for details.");
 
   } finally {
-    // Restore the picture in the editor if it was temporarily omitted.
-    if (pictureBackup && picture) {
-      picture.setAttribute("src", pictureBackup.src);
-      picture.hidden = pictureBackup.hidden;
-    }
+   
 
     // Restore selection outlines.
     selectedElements.forEach(function (el) {
