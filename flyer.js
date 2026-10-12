@@ -534,6 +534,14 @@ document.getElementById("save").addEventListener("click", async function () {
       restoreLayout = null;
       if (hasPhoto) picture.style.visibility = "hidden";
     }
+    canvas = await htmlToImage.toCanvas(flyer, {
+  pixelRatio: pixelRatio,
+  backgroundColor: null,
+  skipFonts: true,
+  filter: function (node) {
+    return !(node && node.id === "oPic");
+  }
+});
 
     /* --- composite the photo manually --- */
     if (photoGeom) {
