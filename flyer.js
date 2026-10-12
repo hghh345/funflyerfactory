@@ -794,7 +794,7 @@ function prepareCloneForCanvas(clone) {
   });
 }
 
-
+async function generatePNG() {
     busy = true;
     g("generate").disabled = true;
     g("generate").textContent = "Generating…";
