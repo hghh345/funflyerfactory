@@ -444,20 +444,6 @@ document.getElementById("save").addEventListener("click", async function () {
       }
     }
 
-
-      // If the picture failed to load, omit it from this PNG.
-      // Restore it in the editor immediately after export.
-      if (!picture.complete || picture.naturalWidth === 0) {
-        pictureBackup = {
-          src: picture.getAttribute("src"),
-          hidden: picture.hidden
-        };
-
-        picture.removeAttribute("src");
-        picture.hidden = true;
-      }
-    }
-
     var sizeIndex = Number(E.sz.value);
     var size = PX[sizeIndex] || PX[0];
     var W = size[0];
@@ -475,14 +461,22 @@ document.getElementById("save").addEventListener("click", async function () {
     });
 
   
-
-    blob = await htmlToImage.toBlob(flyer, {
-      pixelRatio: 2,
-      backgroundColor: null,
-      cacheBust: true,
-      skipFonts: true
-    });
-
+blob = await htmlToImage.toBlob(flyer, {
+  pixelRatio: 2,
+  backgroundColor: null,
+  cacheBust: true,
+  skipFonts: true,
+  filter: function (node) {
+    if (node.id === "oPic") {
+      return node.hidden ||
+        !node.getAttribute("src") ||
+        (node.complete && node.naturalWidth === 0)
+        ? false
+        : true;
+    }
+    return true;
+  }
+});
 
     if (!blob) {
       throw new Error("The PNG could not be created.");
