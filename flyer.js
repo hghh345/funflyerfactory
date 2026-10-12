@@ -487,15 +487,9 @@ document.getElementById("save").addEventListener("click", async function () {
       URL.revokeObjectURL(url);
     }, 60000);
 
-    say("PNG created. Opening print options...");
-
-    // Allow the download to start before requesting the print dialog.
-    setTimeout(function () {
-      button.disabled = false;
-      button.textContent = originalText;
-
-      window.print();
-    }, 700);
+  say("Your PNG is ready! Check your downloads.");
+button.disabled = false;
+button.textContent = originalText;
 
   } catch (err) {
     console.error("Flyer export failed:", err);
