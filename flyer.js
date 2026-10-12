@@ -467,6 +467,16 @@ document.getElementById("save").addEventListener("click", async function () {
       backgroundColor: "#ffffff",
       cacheBust: true,
       skipFonts: true,
+        filter: function (node) {
+    if (node.id === "oPic") {
+      return node.hidden ||
+        !node.getAttribute("src") ||
+        (node.complete && node.naturalWidth === 0)
+        ? false
+        : true;
+    }
+    return true;
+  },
       style: {
         width: W + "px",
         height: H + "px",
