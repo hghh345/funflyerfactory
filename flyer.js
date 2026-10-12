@@ -417,9 +417,10 @@ document.getElementById("save").addEventListener("click", async function () {
       throw new Error("html-to-image did not load. Check the script in your HTML.");
     }
 
-    if (!flyer) {
-      throw new Error("Could not find the flyer preview.");
-    }
+   if (!flyer || typeof htmlToImage === "undefined" ||
+    typeof htmlToImage.toBlob !== "function") {
+  throw new Error("The flyer or html-to-image library is unavailable.");
+}
 
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
