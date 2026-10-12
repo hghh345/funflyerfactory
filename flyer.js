@@ -462,48 +462,54 @@ document.getElementById("save").addEventListener("click", async function () {
       skipFonts: true
     });
 
-    // Now manually draw the photo on top if it exists
+      // Now manually draw the photo on top if it exists and wasn't captured
     if (pic && picture && !picture.hidden) {
       var ctx = canvas.getContext("2d");
-      var photoImg = new Image();
       
-      await new Promise(function(resolve, reject) {
-        photoImg.onload = function() {
-          var flyerRect = flyer.getBoundingClientRect();
-          var photoRect = picture.getBoundingClientRect();
-          
-          var scaleX = canvas.width / flyerRect.width;
-          var scaleY = canvas.height / flyerRect.height;
-          
-          var x = (photoRect.left - flyerRect.left) * scaleX;
-          var y = (photoRect.top - flyerRect.top) * scaleY;
-          var w = photoRect.width * scaleX;
-          var h = photoRect.height * scaleY;
-          
-          var t = T["oPic"];
-          var rotation = t ? (t.r || 0) * Math.PI / 180 : 0;
-          var scale = t ? t.s : 1;
-          var offsetX = t ? t.x * (flyerRect.width / 100) * scaleX : 0;
-          var offsetY = t ? t.y * (flyerRect.width / 100) * scaleY : 0;
-          
-          var cx = x + w/2 + offsetX;
-          var cy = y + h/2 + offsetY;
-          
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(rotation);
-          ctx.rotate(-2 * Math.PI / 180);
-          ctx.scale(scale, scale);
-          ctx.drawImage(photoImg, -w/2, -h/2, w, h);
-          ctx.restore();
-          
-          resolve();
-        };
-        photoImg.onerror = reject;
-        photoImg.src = pic;
-      });
+      // Only draw if the photo isn't already in the canvas
+      // Check by seeing if we're on mobile (small device)
+      var isMobile = window.innerWidth < 661;
+      
+      if (isMobile) {
+        var photoImg = new Image();
+        
+        await new Promise(function(resolve, reject) {
+          photoImg.onload = function() {
+            var flyerRect = flyer.getBoundingClientRect();
+            var photoRect = picture.getBoundingClientRect();
+            
+            var scaleX = canvas.width / flyerRect.width;
+            var scaleY = canvas.height / flyerRect.height;
+            
+            var x = (photoRect.left - flyerRect.left) * scaleX;
+            var y = (photoRect.top - flyerRect.top) * scaleY;
+            var w = photoRect.width * scaleX;
+            var h = photoRect.height * scaleY;
+            
+            var t = T["oPic"];
+            var rotation = t ? (t.r || 0) * Math.PI / 180 : 0;
+            var scale = t ? t.s : 1;
+            var offsetX = t ? t.x * (flyerRect.width / 100) * scaleX : 0;
+            var offsetY = t ? t.y * (flyerRect.width / 100) * scaleY : 0;
+            
+            var cx = x + w/2 + offsetX;
+            var cy = y + h/2 + offsetY;
+            
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation);
+            ctx.rotate(-2 * Math.PI / 180);
+            ctx.scale(scale, scale);
+            ctx.drawImage(photoImg, -w/2, -h/2, w, h);
+            ctx.restore();
+            
+            resolve();
+          };
+          photoImg.onerror = reject;
+          photoImg.src = pic;
+        });
+      }
     }
-
     // Convert canvas to blob
     var blob = await new Promise(function(resolve) {
       canvas.toBlob(resolve, "image/png");
