@@ -794,8 +794,8 @@ if (patternClass === "p1") {
  
 tabNodes.forEach(function (tab) {
   var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-  tab.style.setProperty("writing-mode", "vertical-rl", "important");
-  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("writing-mode", "horizontal-rl", "important");
+  tab.style.setProperty("-webkit-writing-mode", "horizontal-rl", "important");
   tab.style.setProperty("text-orientation", "mixed", "important");
   tab.style.setProperty("transform", "rotate(180deg)", "important");
   tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
