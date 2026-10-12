@@ -311,39 +311,39 @@ if (burst && burst.textContent.trim()) {
     /* html2canvas can invert writing-mode transforms. Keep export tabs upright
        and shrink long labels to the available tear-off height. */
 var tabNodes = clone.querySelectorAll(".tab");
-var exportWidth = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-
-// Give the exported tear-off section more height.
-var tabsContainer = clone.querySelector(".tabs");
-var exportTabHeight = exportWidth * 0.28;
-
-if (tabsContainer) {
-  tabsContainer.style.setProperty(
-    "height", exportTabHeight + "px", "important"
-  );
-  tabsContainer.style.setProperty("flex", "none", "important");
-}
 
 tabNodes.forEach(function (tab) {
   var labelText = (tab.textContent || "").trim();
-  var length = Math.max(1, labelText.length);
 
-  // Calculate font size using the actual export dimensions.
-  var maxFont = exportWidth * 0.027;
-  var availableHeight = exportTabHeight * 0.82;
-  var fitFont = availableHeight / length;
-  var fontSize = Math.min(maxFont, fitFont);
-
-  tab.style.setProperty("transform", "none", "important");
-  tab.style.setProperty("-webkit-transform", "none", "important");
-  tab.style.setProperty("writing-mode", "vertical-rl", "important");
-  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+  // Keep the label as ordinary horizontal text.
+  tab.style.setProperty("writing-mode", "horizontal-tb", "important");
+  tab.style.setProperty("-webkit-writing-mode", "horizontal-tb", "important");
   tab.style.setProperty("text-orientation", "mixed", "important");
   tab.style.setProperty("white-space", "nowrap", "important");
+
+  // Rotate the complete word, not individual characters.
+  tab.style.setProperty("transform", "rotate(-90deg)", "important");
+  tab.style.setProperty("-webkit-transform", "rotate(-90deg)", "important");
+  tab.style.setProperty("transform-origin", "center center", "important");
+
+  // Use a readable font size based on the export width.
+  var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
+  var fontSize = width * 0.018;
+
+  // Reduce the font only when the complete word needs more room.
+  var availableHeight = tab.parentElement
+    ? tab.parentElement.clientHeight * 0.82
+    : width * 0.19;
+
+  var fitFont = availableHeight / Math.max(1, labelText.length);
+  fontSize = Math.min(fontSize, fitFont);
+
   tab.style.setProperty("font-size", fontSize + "px", "important");
   tab.style.setProperty("line-height", "1", "important");
   tab.style.setProperty("overflow", "hidden", "important");
-  tab.style.setProperty("padding", "4px", "important");
+  tab.style.setProperty("display", "flex", "important");
+  tab.style.setProperty("align-items", "center", "important");
+  tab.style.setProperty("justify-content", "center", "important");
 });
   }
 
