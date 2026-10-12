@@ -94,7 +94,6 @@ ids.forEach(function(i){
 var fl=document.getElementById("fl");
 var pic="";
 var AR=["8.5/11","1/1","4/5","9/16"];
-var PX=[[1275,1650],[800,800],[1080,1350],[1080,1920]];
 var msg=document.getElementById("msg");
 
 
@@ -274,149 +273,23 @@ function say(t){
 }
 
 
-/* ---------- bake cqw-derived values as px ---------- */
+/* ---------- save / print ---------- */
 
-function bakeLayoutPx(root){
-  var PROPS=[
-    'font-size','letter-spacing','line-height','word-spacing',
-    'padding-top','padding-right','padding-bottom','padding-left',
-    'margin-top','margin-right','margin-bottom','margin-left',
-    'border-top-width','border-right-width','border-bottom-width','border-left-width',
-    'top','right','bottom','left',
-    'outline-width','outline-offset',
-    'text-shadow','box-shadow','filter',
-    'transform','translate','rotate','scale',
-    'width','height','max-width','max-height','min-width','min-height',
-    '-webkit-text-stroke','-webkit-text-stroke-width'
-  ];
-  var saved=[];
+document.getElementById("save").addEventListener("click", function () {
 
-  function walk(el){
-    var cs;
-    try{cs=getComputedStyle(el);}catch(e){return;}
-    var orig=el.getAttribute('style')||'';
-    for(var i=0;i<PROPS.length;i++){
-      var p=PROPS[i];
-      var v=cs.getPropertyValue(p);
-      if(!v)continue;
-      v=v.trim();
-      if(!v||v==='none'||v==='normal'||v==='auto'||v==='0px'||v==='1')continue;
-      try{el.style.setProperty(p,v,'important');}catch(e){}
-    }
-    saved.push({el:el,style:orig});
-    for(var j=0;j<el.children.length;j++)walk(el.children[j]);
-  }
+  // Deselect anything currently selected so the dashed outline doesn't print.
+  select(null);
 
-  walk(root);
+  say("Opening the print dialog. Choose “Save as PDF” to keep a copy.");
 
-  return function restore(){
-    for(var i=0;i<saved.length;i++){
-      var s=saved[i];
-      if(s.style)s.el.setAttribute('style',s.style);
-      else s.el.removeAttribute('style');
-    }
-  };
-}
+  // Give the browser a beat to render the message and clear the selection
+  // before the print dialog opens and blocks the UI.
+  requestAnimationFrame(function () {
+    setTimeout(function () {
+      window.print();
+    }, 60);
+  });
 
-
-/* ---------- save / export PNG ---------- */
-
-document.getElementById("save").addEventListener("click", async function () {
-  var button = this;
-  var originalText = button.textContent;
-  var flyer = document.getElementById("fl");
-  var picture = document.getElementById("oPic");
-  var selectedElements = [];
-  var restoreLayout = null;
-
-  if (button.disabled) return;
-  button.disabled = true;
-  button.textContent = "Making your flyer...";
-  say("Preparing your flyer...");
-
-  try {
-    if (typeof htmlToImage === "undefined" || typeof htmlToImage.toCanvas !== "function") {
-      throw new Error("The image library didn't load. Refresh and try again.");
-    }
-
-    if (document.fonts && document.fonts.ready) {
-      try { await document.fonts.ready; } catch (e) {}
-    }
-
-    var hasPhoto = !!(pic && picture && !picture.hidden);
-
-    /* Make sure the img has a valid src and is fully decoded */
-    if (hasPhoto) {
-      if (picture.getAttribute("src") !== pic) {
-        picture.setAttribute("src", pic);
-      }
-      try { await picture.decode(); } catch (e) {}
-    }
-
-    /* Clear selection outlines */
-    flyer.querySelectorAll(".sel").forEach(function (el) {
-      selectedElements.push(el);
-      el.classList.remove("sel");
-    });
-
-    var sizeIndex = Number(E.sz.value) || 0;
-    var size = PX[sizeIndex] || PX[0];
-    var W = size[0];
-    var H = size[1];
-
-    var fr = flyer.getBoundingClientRect();
-    var pixelRatio = W / fr.width;
-
-    /* Bake cqw values as px so every browser renders identically */
-    restoreLayout = bakeLayoutPx(flyer);
-
-    var canvas;
-    try {
-      canvas = await htmlToImage.toCanvas(flyer, {
-        pixelRatio: pixelRatio,
-        backgroundColor: null,
-        skipFonts: true
-      });
-    } finally {
-      restoreLayout();
-      restoreLayout = null;
-    }
-
-    var blob = await new Promise(function (resolve) {
-      canvas.toBlob(resolve, "image/png");
-    });
-    if (!blob) throw new Error("The PNG couldn't be created.");
-
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement("a");
-    link.href = url;
-    link.download = "funflyer-" + W + "x" + H + ".png";
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
-
-    var outimg = document.getElementById("outimg");
-    if (outimg) {
-      if (outimg.dataset.url) URL.revokeObjectURL(outimg.dataset.url);
-      var previewUrl = URL.createObjectURL(blob);
-      outimg.src = previewUrl;
-      outimg.dataset.url = previewUrl;
-      outimg.style.display = "block";
-    }
-
-    say("Your flyer is ready! Check your downloads.");
-
-  } catch (err) {
-    console.error("Flyer export failed:", err);
-    say("Couldn't make the PNG. " + (err && err.message ? err.message : ""));
-  } finally {
-    if (restoreLayout) { try { restoreLayout(); } catch (e) {} }
-    selectedElements.forEach(function (el) { el.classList.add("sel"); });
-    button.disabled = false;
-    button.textContent = originalText;
-  }
 });
 
 
