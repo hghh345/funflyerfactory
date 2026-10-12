@@ -1,47 +1,30 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="smiley favicon.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
+  <link rel="icon" type="image/png" href="smiley%20favicon.png">
   <title>funflyerfactory!!!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="flyer.css">
 </head>
-
 <body>
-
 <div class="win">
-
-  <div class="title">
-    <span>funflyerfactory</span>
-    <i>_ ▫ x</i>
-  </div>
-
-  <div class="marq">
-    <div>
-      use your imagination, create something unique, fuck ai flyers! &#9733;
-      use your imagination, create something unique, fuck ai flyers! &#9733;
-      use your imagination, create something unique, fuck ai flyers!
-    </div>
-  </div>
+  <div class="title"><span>funflyerfactory</span><i>_ ▫ x</i></div>
+  <div class="marq"><div>use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers!</div></div>
 
   <div class="wrap">
-
     <div class="top">
-
       <fieldset>
         <legend>Start from</legend>
-        <button data-t="show">Basement show</button>
-        <button data-t="cat">Lost cat</button>
-        <button data-t="sale">Yard sale</button>
-        <button data-t="party">Dance party</button>
+        <button type="button" data-t="show">Basement show</button>
+        <button type="button" data-t="cat">Lost cat</button>
+        <button type="button" data-t="sale">Yard sale</button>
+        <button type="button" data-t="party">Dance party</button>
       </fieldset>
-
       <fieldset>
         <legend>Size</legend>
         <select id="sz" aria-label="Flyer size">
@@ -51,301 +34,97 @@
           <option value="3">Story 9:16, 1080 x 1920 px</option>
         </select>
       </fieldset>
-
     </div>
 
-
     <div class="ctl">
-
       <details class="sec" open>
         <summary>Words</summary>
-
         <div class="secbody">
-
-          <label>
-            Big headline
-            <input type="text" id="head" maxlength="30">
-          </label>
-
-          <label>
-            Sticker (leave empty for none)
-            <input type="text" id="burst" maxlength="14">
-          </label>
-
-          <label>
-            Subheading
-            <input type="text" id="sub" maxlength="40">
-          </label>
-
-          <label>
-            Details
-            <textarea id="body" rows="3" maxlength="140"></textarea>
-          </label>
-
-          <label>
-            When and where
-            <textarea id="when" rows="2" maxlength="80"></textarea>
-          </label>
-
-          <label>
-            <input type="checkbox" id="tabs" checked>
-            Add tear-off tabs
-          </label>
-
-          <label>
-            Tab text
-            <input type="text" id="tab" maxlength="34">
-          </label>
-
+          <label>Big headline<input type="text" id="head" maxlength="30"></label>
+          <label>Sticker (leave empty for none)<input type="text" id="burst" maxlength="14"></label>
+          <label>Subheading<input type="text" id="sub" maxlength="40"></label>
+          <label>Details<textarea id="body" rows="3" maxlength="140"></textarea></label>
+          <label>When and where<textarea id="when" rows="2" maxlength="80"></textarea></label>
+          <label class="checkline"><input type="checkbox" id="tabs" checked> Add tear-off tabs</label>
+          <label>Tab text<input type="text" id="tab" maxlength="34"></label>
         </div>
       </details>
-
 
       <details class="sec" open>
         <summary>Selected item</summary>
-
         <div class="secbody">
-
-          <div id="selName"></div>
-
-          <label>
-            Rotate
-            <input type="range" id="rot" min="-180" max="180" value="0">
-          </label>
-
-          <label>
-            Size
-            <input type="range" id="siz" min="30" max="300" value="100">
-          </label>
-
-          <button id="rst" type="button">Reset item</button>
-          <button id="del" type="button">Delete item</button>
-
-          <p class="hint">
-            Drag anything on the flyer to move it.
-          </p>
-
+          <div id="selName" aria-live="polite">Nothing selected. Click something on the flyer.</div>
+          <label>Rotate<input type="range" id="rot" min="-180" max="180" value="0" disabled></label>
+          <label>Size<input type="range" id="siz" min="30" max="300" value="100" disabled></label>
+          <button id="rst" type="button" disabled>Reset item</button>
+          <button id="del" type="button" disabled>Delete item</button>
+          <p class="hint">Drag anything on the flyer to move it. Select an item to rotate, resize, or delete it.</p>
         </div>
       </details>
-
 
       <details class="sec" open>
         <summary>Picture</summary>
-
         <div class="secbody">
-
-          <input
-            type="file"
-            id="file"
-            accept="image/*"
-            aria-label="Upload one image"
-          >
-
-          <button id="nopic" type="button">
-            Remove picture
-          </button>
-
+          <input type="file" id="file" accept="image/*" aria-label="Upload one image">
+          <button id="nopic" type="button">Remove picture</button>
         </div>
       </details>
-
 
       <details class="sec" open>
         <summary>Looks</summary>
-
         <div class="secbody">
-
-          <label>
-            Headline shape
-            <select id="shape">
-              <option value="0">Straight</option>
-              <option value="1">Wavy</option>
-              <option value="2">Arch</option>
-              <option value="3">Wobbly</option>
-            </select>
-          </label>
-
-
+          <label>Headline shape<select id="shape"><option value="0">Straight</option><option value="1">Wavy</option><option value="2">Arch</option><option value="3">Wobbly</option></select></label>
           <div class="row">
-
-            <label>
-              Headline style
-              <select id="wa">
-                <option value="0">Plain Impact</option>
-                <option value="1">Rainbow WordArt</option>
-                <option value="2">3-D yellow</option>
-                <option value="3">Outline slant</option>
-                <option value="4">Chrome</option>
-                <option value="5">Fire</option>
-                <option value="6">Bubble</option>
-                <option value="7">Sticker</option>
-              </select>
-            </label>
-
-            <label>
-              Font
-              <select id="font">
-                <option value="1">Impact</option>
-                <option value="0">Comic Neue</option>
-                <option value="2">Papyrus</option>
-                <option value="3">Times</option>
-                <option value="4">Courier</option>
-                <option value="5">Trebuchet</option>
-              </select>
-            </label>
-
+            <label>Headline style<select id="wa"><option value="0">Plain Impact</option><option value="1">Rainbow WordArt</option><option value="2">3-D yellow</option><option value="3">Outline slant</option><option value="4">Chrome</option><option value="5">Fire</option><option value="6">Bubble</option><option value="7">Sticker</option></select></label>
+            <label>Font<select id="font"><option value="1">Impact</option><option value="0">Comic Neue</option><option value="2">Papyrus</option><option value="3">Times</option><option value="4">Courier</option><option value="5">Trebuchet</option></select></label>
           </div>
-
-
           <div class="row">
-
-            <label>
-              Colors
-              <select id="col">
-                <option value="0">Highlighter</option>
-                <option value="1">Bubblegum</option>
-                <option value="2">Copy shop</option>
-                <option value="3">Lime</option>
-                <option value="4">Sky</option>
-                <option value="5">Hot dog stand</option>
-                <option value="6">Grape soda</option>
-                <option value="7">Mint</option>
-                <option value="8">Sunset</option>
-                <option value="9">Orange crush</option>
-                <option value="10">Custom...</option>
-              </select>
-            </label>
-
-            <label>
-              Background
-              <select id="pat">
-                <option value="0">Solid</option>
-                <option value="1">Checkerboard</option>
-                <option value="2">Polka dots</option>
-                <option value="3">Stripes</option>
-              </select>
-            </label>
-
+            <label>Colors<select id="col"><option value="0">Highlighter</option><option value="1">Bubblegum</option><option value="2">Copy shop</option><option value="3">Lime</option><option value="4">Sky</option><option value="5">Hot dog stand</option><option value="6">Grape soda</option><option value="7">Mint</option><option value="8">Sunset</option><option value="9">Orange crush</option><option value="10">Custom...</option></select></label>
+            <label>Background<select id="pat"><option value="0">Solid</option><option value="1">Checkerboard</option><option value="2">Polka dots</option><option value="3">Stripes</option></select></label>
           </div>
-
-
           <div class="row" id="cust" hidden>
-
-            <label>
-              Background
-              <input type="color" id="c0" value="#ffe600">
-            </label>
-
-            <label>
-              Text
-              <input type="color" id="c1" value="#000000">
-            </label>
-
-            <label>
-              Accent
-              <input type="color" id="c2" value="#ff1493">
-            </label>
-
+            <label>Background<input type="color" id="c0" value="#ffe600"></label>
+            <label>Text<input type="color" id="c1" value="#000000"></label>
+            <label>Accent<input type="color" id="c2" value="#ff1493"></label>
           </div>
-
-
-          <label>
-            <input type="checkbox" id="bw">
-            Black and white (saves color ink)
-          </label>
-
-
+          <label class="checkline"><input type="checkbox" id="bw"> Black and white (saves color ink)</label>
           <div class="row">
-
-            <label>
-              Border
-              <select id="bd">
-                <option value="0">None</option>
-                <option value="1">Dotted</option>
-                <option value="2">Chunky ridge</option>
-                <option value="3">Double</option>
-              </select>
-            </label>
-
-            <label>
-              Dingbats
-              <select id="dg">
-                <option value="">None</option>
-                <option value="★ ★ ★">Stars</option>
-                <option value="☺ ☺ ☺">Smileys</option>
-                <option value="♪ ♫ ♪">Notes</option>
-                <option value="✿ ✿ ✿">Flowers</option>
-              </select>
-            </label>
-
+            <label>Border<select id="bd"><option value="0">None</option><option value="1">Dotted</option><option value="2">Chunky ridge</option><option value="3">Double</option></select></label>
+            <label>Dingbats<select id="dg"><option value="">None</option><option value="★ ★ ★">Stars</option><option value="☺ ☺ ☺">Smileys</option><option value="♪ ♫ ♪">Notes</option><option value="✿ ✿ ✿">Flowers</option></select></label>
           </div>
-
         </div>
       </details>
 
-
-<div class="actionbar">
-  <button id="editJump" type="button">Edit</button>
-  <button id="save" type="button">Print My Flyer!</button>
-</div>
-<p class="hint" id="msg">Make your flyer to download and print it.</p>
-<img id="outimg" alt="Your finished flyer" style="display:none;max-width:100%;border:1px solid var(--edge)">
-
-
-      <p class="hint" id="msg">
-        Print not working? Screenshot the flyer instead.
-      </p>
-
-      <img
-        id="outimg"
-        alt="Your flyer as a PNG"
-        style="display:none;max-width:100%;border:1px solid var(--edge)"
-      >
-
-    </div>
-
-
-    <div class="pv">
-
-      <div class="flyer" id="fl">
-
-        <div class="in">
-
-          <div class="plate" id="oPlate">
-            <h1 class="head" id="oHead"></h1>
-          </div>
-
-          <span class="sub" id="oSub"></span>
-
-          <img
-            class="pic"
-            id="oPic"
-            alt=""
-            hidden
-          >
-
-          <div class="dings" id="oDg"></div>
-
-          <p class="bodytxt" id="oBody"></p>
-
-          <p class="when" id="oWhen"></p>
-
-          <div class="burst" id="oBurst"></div>
-
-        </div>
-
-        <div class="tabs" id="oTabs"></div>
-
+      <div class="actionbar">
+        <button id="editJump" type="button">Edit</button>
+        <button id="generate" type="button">Generate my flyer!</button>
       </div>
-
+      <div class="export-options" id="exportOptions" hidden>
+        <button id="download" type="button">Download PNG</button>
+        <button id="print" type="button">Print flyer</button>
+      </div>
+      <p class="hint" id="msg" role="status" aria-live="polite">Make your flyer, then generate a finished PNG to download or print.</p>
+      <img id="outimg" alt="Preview of your generated flyer" hidden>
     </div>
 
+    <div class="pv" id="previewArea">
+      <div class="flyer" id="fl">
+        <div class="in">
+          <div class="plate" id="oPlate"><h1 class="head" id="oHead"></h1></div>
+          <span class="sub" id="oSub"></span>
+          <img class="pic" id="oPic" alt="" hidden>
+          <div class="dings" id="oDg"></div>
+          <p class="bodytxt" id="oBody"></p>
+          <p class="when" id="oWhen"></p>
+          <div class="burst" id="oBurst"></div>
+        </div>
+        <div class="tabs" id="oTabs"></div>
+      </div>
+    </div>
   </div>
-
 </div>
 
-
-<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="flyer.js"></script>
-
 </body>
 </html>
