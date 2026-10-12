@@ -391,161 +391,169 @@ function say(t){
   msg.textContent=t;
 
 }
+/* ---------- save / export PNG ---------- */
 
 document.getElementById("save").addEventListener("click", async function () {
   var button = this;
   var originalText = button.textContent;
   var flyer = document.getElementById("fl");
-  var selectedElements = [];
   var picture = document.getElementById("oPic");
+  var selectedElements = [];
 
   if (button.disabled) return;
-
   button.disabled = true;
   button.textContent = "Making your flyer...";
   say("Preparing your flyer...");
 
+  var hasPhoto = !!(pic && picture && !picture.hidden);
+  var savedVis = "";
+  var photoGeom = null;
+
   try {
-    if (
-      !flyer ||
-      typeof htmlToImage === "undefined" ||
-      typeof htmlToImage.toCanvas !== "function"
-    ) {
-      throw new Error("The flyer or html-to-image library is unavailable.");
+    if (typeof htmlToImage === "undefined" || typeof htmlToImage.toCanvas !== "function") {
+      throw new Error("The image library didn't load. Refresh and try again.");
     }
 
     if (document.fonts && document.fonts.ready) {
-      await document.fonts.ready;
+      try { await document.fonts.ready; } catch (e) {}
     }
 
-    // Wait for the uploaded photo to be ready on mobile.
-    if (
-      picture &&
-      !picture.hidden &&
-      picture.getAttribute("src")
-    ) {
-      try {
-        if (typeof picture.decode === "function") {
-          await picture.decode();
-        } else if (!picture.complete) {
-          await new Promise(function (resolve) {
-            picture.addEventListener("load", resolve, { once: true });
-            picture.addEventListener("error", resolve, { once: true });
-          });
-        }
-      } catch (err) {
-        console.warn("Photo decode issue:", err);
-      }
+    // --- Measure photo geometry BEFORE hiding it ---
+    if (hasPhoto) {
+      try { await picture.decode(); } catch (e) {}
+
+      savedVis = picture.style.visibility;
+
+      // Temporarily strip transforms so we measure the layout box
+      var sT = picture.style.translate;
+      var sR = picture.style.rotate;
+      var sS = picture.style.scale;
+      var sF = picture.style.transform;
+
+      picture.style.translate = "none";
+      picture.style.rotate = "none";
+      picture.style.scale = "none";
+      picture.style.transform = "none";
+      void picture.offsetWidth;
+
+      var pr = picture.getBoundingClientRect();
+      var fr = flyer.getBoundingClientRect();
+      var t = T["oPic"] || { x: 0, y: 0, r: 0, s: 1 };
+
+      photoGeom = {
+        left: pr.left - fr.left,
+        top: pr.top - fr.top,
+        w: pr.width,
+        h: pr.height,
+        flyerW: fr.width,
+        flyerH: fr.height,
+        tx: t.x || 0,
+        ty: t.y || 0,
+        tr: t.r || 0,
+        ts: t.s || 1
+      };
+
+      // Restore transforms
+      picture.style.translate = sT;
+      picture.style.rotate = sR;
+      picture.style.scale = sS;
+      picture.style.transform = sF;
+
+      // Hide photo so html-to-image never sees it
+      picture.style.visibility = "hidden";
     }
 
-    var sizeIndex = Number(E.sz.value);
-    var size = PX[sizeIndex] || PX[0];
-    var W = size[0];
-    var H = size[1];
-
-    // Temporarily remove editor selection outlines.
-    if (flyer.classList.contains("sel")) {
-      selectedElements.push(flyer);
-      flyer.classList.remove("sel");
-    }
-
+    // Clear selection outlines
     flyer.querySelectorAll(".sel").forEach(function (el) {
       selectedElements.push(el);
       el.classList.remove("sel");
     });
 
-    // Convert to canvas first
+    var sizeIndex = Number(E.sz.value) || 0;
+    var size = PX[sizeIndex] || PX[0];
+    var W = size[0];
+    var H = size[1];
+
+    // Raster everything EXCEPT the photo
+    var fr2 = flyer.getBoundingClientRect();
+    var pixelRatio = W / fr2.width;
+
     var canvas = await htmlToImage.toCanvas(flyer, {
-      pixelRatio: 2,
+      pixelRatio: pixelRatio,
       backgroundColor: null,
-      cacheBust: true,
       skipFonts: true
     });
 
-      // Now manually draw the photo on top if it exists and wasn't captured
-    if (pic && picture && !picture.hidden) {
-      var ctx = canvas.getContext("2d");
-      
-      // Only draw if the photo isn't already in the canvas
-      // Check by seeing if we're on mobile (small device)
-      var isMobile = window.innerWidth < 661;
-      
-      if (isMobile) {
-        var photoImg = new Image();
-        
-        await new Promise(function(resolve, reject) {
-          photoImg.onload = function() {
-            var flyerRect = flyer.getBoundingClientRect();
-            var photoRect = picture.getBoundingClientRect();
-            
-            var scaleX = canvas.width / flyerRect.width;
-            var scaleY = canvas.height / flyerRect.height;
-            
-            var x = (photoRect.left - flyerRect.left) * scaleX;
-            var y = (photoRect.top - flyerRect.top) * scaleY;
-            var w = photoRect.width * scaleX;
-            var h = photoRect.height * scaleY;
-            
-            var t = T["oPic"];
-            var rotation = t ? (t.r || 0) * Math.PI / 180 : 0;
-            var scale = t ? t.s : 1;
-            var offsetX = t ? t.x * (flyerRect.width / 100) * scaleX : 0;
-            var offsetY = t ? t.y * (flyerRect.width / 100) * scaleY : 0;
-            
-            var cx = x + w/2 + offsetX;
-            var cy = y + h/2 + offsetY;
-            
+    // --- Composite the photo manually ---
+    if (photoGeom) {
+      await new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var sx = canvas.width / photoGeom.flyerW;
+            var sy = canvas.height / photoGeom.flyerH;
+
+            var cx = (photoGeom.left + photoGeom.w / 2) * sx;
+            var cy = (photoGeom.top + photoGeom.h / 2) * sy;
+            var w = photoGeom.w * sx;
+            var h = photoGeom.h * sy;
+
+            // User translate is in cqw = % of flyer width
+            var ox = photoGeom.tx * (photoGeom.flyerW / 100) * sx;
+            var oy = photoGeom.ty * (photoGeom.flyerW / 100) * sy;
+
+            // Base -2deg from .pic CSS, plus user rotation
+            var rot = (-2 + photoGeom.tr) * Math.PI / 180;
+            var s = photoGeom.ts;
+
+            var ctx = canvas.getContext("2d");
             ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(rotation);
-            ctx.rotate(-2 * Math.PI / 180);
-            ctx.scale(scale, scale);
-            ctx.drawImage(photoImg, -w/2, -h/2, w, h);
+            ctx.translate(cx + ox, cy + oy);
+            ctx.rotate(rot);
+            ctx.scale(s, s);
+            ctx.drawImage(img, -w / 2, -h / 2, w, h);
             ctx.restore();
-            
             resolve();
-          };
-          photoImg.onerror = reject;
-          photoImg.src = pic;
-        });
-      }
+          } catch (e) { reject(e); }
+        };
+        img.onerror = function () { reject(new Error("Photo couldn't be loaded for compositing.")); };
+        img.src = pic;
+      });
     }
-    // Convert canvas to blob
-    var blob = await new Promise(function(resolve) {
+
+    var blob = await new Promise(function (resolve) {
       canvas.toBlob(resolve, "image/png");
     });
-
-    if (!blob) {
-      throw new Error("The PNG could not be created.");
-    }
+    if (!blob) throw new Error("The PNG couldn't be created.");
 
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
-
     link.href = url;
     link.download = "funflyer-" + W + "x" + H + ".png";
     link.style.display = "none";
-
     document.body.appendChild(link);
     link.click();
     link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
 
-    setTimeout(function () {
-      URL.revokeObjectURL(url);
-    }, 10000);
+    // Preview too — helps on iOS where downloads are weird
+    var outimg = document.getElementById("outimg");
+    if (outimg) {
+      if (outimg.dataset.url) URL.revokeObjectURL(outimg.dataset.url);
+      var previewUrl = URL.createObjectURL(blob);
+      outimg.src = previewUrl;
+      outimg.dataset.url = previewUrl;
+      outimg.style.display = "block";
+    }
 
     say("Your flyer is ready! Check your downloads.");
 
   } catch (err) {
     console.error("Flyer export failed:", err);
-    say("Couldn't make the PNG. Check the browser console for details.");
-
+    say("Couldn't make the PNG. " + (err && err.message ? err.message : ""));
   } finally {
-    // Restore selection outlines.
-    selectedElements.forEach(function (el) {
-      el.classList.add("sel");
-    });
-
+    if (picture) picture.style.visibility = savedVis;
+    selectedElements.forEach(function (el) { el.classList.add("sel"); });
     button.disabled = false;
     button.textContent = originalText;
   }
