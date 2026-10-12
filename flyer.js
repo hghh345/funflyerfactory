@@ -338,6 +338,7 @@ tabNodes.forEach(function (tab) {
     "important"
   );
 });
+  } // End prepareCloneForCanvas
 
   async function generatePNG() {
     if (busy) return;
