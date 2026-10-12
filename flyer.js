@@ -277,19 +277,53 @@ function say(t){
 
 document.getElementById("save").addEventListener("click", function () {
 
-  // Deselect anything currently selected so the dashed outline doesn't print.
   select(null);
+  say("Opening a print preview…");
 
-  say("Opening the print dialog. Choose “Save as PDF” to keep a copy.");
+  var sizeIndex = Number(E.sz.value) || 0;
+  var widths = ["7.5in","7in","6.5in","5.5in"];
+  var flyerWidth = widths[sizeIndex] || "7.5in";
 
-  // Give the browser a beat to render the message and clear the selection
-  // before the print dialog opens and blocks the UI.
-  requestAnimationFrame(function () {
-    setTimeout(function () {
-      window.print();
-    }, 60);
+  var flyer = document.getElementById("fl");
+  var clone = flyer.cloneNode(true);
+
+  clone.querySelectorAll(".sel").forEach(function(el){
+    el.classList.remove("sel");
   });
 
+  var win = window.open("", "_blank", "width=900,height=1100");
+  if(!win){
+    say("Please allow popups to save your flyer.");
+    return;
+  }
+
+  var html =
+    '<!DOCTYPE html><html><head><meta charset="utf-8">'+
+    '<title>My Flyer</title>'+
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'+
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">'+
+    '<link rel="stylesheet" href="flyer.css">'+
+    '<style>'+
+    '@page{size:letter portrait;margin:0.35in}'+
+    'html,body{margin:0!important;padding:0!important;background:#fff!important;width:auto!important;height:auto!important}'+
+    'body{display:block!important}'+
+    '.flyer{width:'+flyerWidth+'!important;max-width:'+flyerWidth+'!important;margin:0 auto!important;box-shadow:none!important}'+
+    '</style>'+
+    '</head><body></body></html>';
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+
+  var imported = win.document.importNode(clone, true);
+  win.document.body.appendChild(imported);
+
+  // Give fonts + the photo a moment, then print
+  setTimeout(function(){
+    win.focus();
+    win.print();
+  }, 600);
 });
 
 
