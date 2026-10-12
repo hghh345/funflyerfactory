@@ -392,16 +392,12 @@ function say(t){
 
 }
 
-
-/* ---------- make and download flyer ---------- */
-
 document.getElementById("save").addEventListener("click", async function () {
   var button = this;
   var originalText = button.textContent;
   var flyer = document.getElementById("fl");
   var selectedElements = [];
   var picture = document.getElementById("oPic");
-  var pictureBackup = null;
 
   if (button.disabled) return;
 
@@ -413,7 +409,7 @@ document.getElementById("save").addEventListener("click", async function () {
     if (
       !flyer ||
       typeof htmlToImage === "undefined" ||
-      typeof htmlToImage.toBlob !== "function"
+      typeof htmlToImage.toCanvas !== "function"
     ) {
       throw new Error("The flyer or html-to-image library is unavailable.");
     }
@@ -422,8 +418,6 @@ document.getElementById("save").addEventListener("click", async function () {
       await document.fonts.ready;
     }
 
-    // Check the flyer picture before exporting.
-   
     // Wait for the uploaded photo to be ready on mobile.
     if (
       picture &&
@@ -459,21 +453,61 @@ document.getElementById("save").addEventListener("click", async function () {
       selectedElements.push(el);
       el.classList.remove("sel");
     });
-    
-console.log("Photo export check:", {
-  src: picture.src.substring(0, 50),
-  complete: picture.complete,
-  naturalWidth: picture.naturalWidth,
-  naturalHeight: picture.naturalHeight,
-  hidden: picture.hidden
-});
-  
-var blob = await htmlToImage.toBlob(flyer, {
-  pixelRatio: 2,
-  backgroundColor: null,
-  cacheBust: true,
-  skipFonts: true
-});
+
+    // Convert to canvas first
+    var canvas = await htmlToImage.toCanvas(flyer, {
+      pixelRatio: 2,
+      backgroundColor: null,
+      cacheBust: true,
+      skipFonts: true
+    });
+
+    // Now manually draw the photo on top if it exists
+    if (pic && picture && !picture.hidden) {
+      var ctx = canvas.getContext("2d");
+      var photoImg = new Image();
+      
+      await new Promise(function(resolve, reject) {
+        photoImg.onload = function() {
+          var flyerRect = flyer.getBoundingClientRect();
+          var photoRect = picture.getBoundingClientRect();
+          
+          var scaleX = canvas.width / flyerRect.width;
+          var scaleY = canvas.height / flyerRect.height;
+          
+          var x = (photoRect.left - flyerRect.left) * scaleX;
+          var y = (photoRect.top - flyerRect.top) * scaleY;
+          var w = photoRect.width * scaleX;
+          var h = photoRect.height * scaleY;
+          
+          var t = T["oPic"];
+          var rotation = t ? (t.r || 0) * Math.PI / 180 : 0;
+          var scale = t ? t.s : 1;
+          var offsetX = t ? t.x * (flyerRect.width / 100) * scaleX : 0;
+          var offsetY = t ? t.y * (flyerRect.width / 100) * scaleY : 0;
+          
+          var cx = x + w/2 + offsetX;
+          var cy = y + h/2 + offsetY;
+          
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(rotation);
+          ctx.rotate(-2 * Math.PI / 180);
+          ctx.scale(scale, scale);
+          ctx.drawImage(photoImg, -w/2, -h/2, w, h);
+          ctx.restore();
+          
+          resolve();
+        };
+        photoImg.onerror = reject;
+        photoImg.src = pic;
+      });
+    }
+
+    // Convert canvas to blob
+    var blob = await new Promise(function(resolve) {
+      canvas.toBlob(resolve, "image/png");
+    });
 
     if (!blob) {
       throw new Error("The PNG could not be created.");
@@ -501,8 +535,6 @@ var blob = await htmlToImage.toBlob(flyer, {
     say("Couldn't make the PNG. Check the browser console for details.");
 
   } finally {
-   
-
     // Restore selection outlines.
     selectedElements.forEach(function (el) {
       el.classList.add("sel");
