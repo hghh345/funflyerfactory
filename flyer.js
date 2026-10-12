@@ -734,64 +734,86 @@ function prepareCloneForCanvas(clone) {
   }
 
   /* Rebuild flyer patterns with pixel-based sizing for export. */
-  var flyerStyle = getComputedStyle(fl);
-  var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
-  var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
+  
+var flyerStyle = getComputedStyle(fl);
+var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
+var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
 
-  var patternClass = ["p1", "p2", "p3"].find(function (name) {
-    return clone.classList.contains(name);
-  });
+var patternClass = ["p1", "p2", "p3"].find(function (name) {
+  return clone.classList.contains(name);
+});
 
-  clone.style.backgroundColor = exportBg;
+clone.style.setProperty("background-color", exportBg, "important");
+clone.style.setProperty("background-image", "none", "important");
+clone.style.setProperty("background-size", "64px 64px", "important");
+clone.style.setProperty("background-position", "0 0", "important");
+clone.style.setProperty("background-repeat", "repeat", "important");
 
-  if (patternClass === "p1") {
-    clone.style.backgroundImage =
-      "linear-gradient(45deg," + exportAccent +
-      " 25%,transparent 25%,transparent 75%," + exportAccent +
-      " 75%),linear-gradient(45deg," + exportAccent +
-      " 25%,transparent 25%,transparent 75%," + exportAccent + " 75%)";
-    clone.style.backgroundSize = "32px 32px";
-    clone.style.backgroundPosition = "0 0,16px 16px";
-  } else if (patternClass === "p2") {
-    clone.style.backgroundImage =
-      "radial-gradient(" + exportAccent + " 18%,transparent 20%)";
-    clone.style.backgroundSize = "24px 24px";
-    clone.style.backgroundPosition = "0 0";
-  } else if (patternClass === "p3") {
-    clone.style.backgroundImage =
-      "repeating-linear-gradient(0deg," + exportBg +
-      " 0 12px," + exportAccent + " 12px 24px)";
-    clone.style.backgroundSize = "auto";
-    clone.style.backgroundPosition = "0 0";
-  }
+if (patternClass === "p1") {
+  // Larger checkerboard
+  clone.style.setProperty(
+    "background-image",
+    "linear-gradient(45deg, " + exportAccent +
+      " 25%, transparent 25%, transparent 75%, " +
+      exportAccent + " 75%)," +
+    "linear-gradient(45deg, " + exportAccent +
+      " 25%, transparent 25%, transparent 75%, " +
+      exportAccent + " 75%)",
+    "important"
+  );
+  clone.style.setProperty("background-size", "64px 64px", "important");
+  clone.style.setProperty("background-position", "0 0, 32px 32px", "important");
+
+} else if (patternClass === "p2") {
+  // Polka dots
+  clone.style.setProperty(
+    "background-image",
+    "radial-gradient(circle, " + exportAccent + " 3px, transparent 3.5px)",
+    "important"
+  );
+  clone.style.setProperty("background-size", "30px 30px", "important");
+  clone.style.setProperty("background-position", "0 0", "important");
+
+} else if (patternClass === "p3") {
+  // Bold stripes
+  clone.style.setProperty(
+    "background-image",
+    "repeating-linear-gradient(90deg, " + exportBg +
+      " 0 24px, " + exportAccent + " 24px 48px)",
+    "important"
+  );
+  clone.style.setProperty("background-size", "auto", "important");
+  clone.style.setProperty("background-position", "0 0", "important");
+}
+
 
   /* Fix tear-off tabs: keep text upright in the tabs,
      give it room to wrap, and prevent clipping. */
   var tabNodes = clone.querySelectorAll(".tab");
 
-  tabNodes.forEach(function (tab) {
-    tab.style.setProperty("writing-mode", "vertical-rl", "important");
-    tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
-    tab.style.setProperty("text-orientation", "mixed", "important");
+ 
+tabNodes.forEach(function (tab) {
+  tab.style.setProperty("writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("text-orientation", "mixed", "important");
 
-    /* Undo the rotation that made exported text upside down. */
-    tab.style.setProperty("transform", "none", "important");
-    tab.style.setProperty("-webkit-transform", "none", "important");
+  tab.style.setProperty("transform", "none", "important");
+  tab.style.setProperty("-webkit-transform", "none", "important");
 
-    tab.style.setProperty("flex", "1 1 0", "important");
-    tab.style.setProperty("width", "0", "important");
-    tab.style.setProperty("height", "100%", "important");
-    tab.style.setProperty("min-width", "0", "important");
-    tab.style.setProperty("min-height", "0", "important");
-    tab.style.setProperty("box-sizing", "border-box", "important");
-    tab.style.setProperty("padding", "3px 2px", "important");
-    tab.style.setProperty("font-size", "10px", "important");
-    tab.style.setProperty("line-height", "1.1", "important");
-    tab.style.setProperty("white-space", "normal", "important");
-    tab.style.setProperty("overflow", "hidden", "important");
-    tab.style.setProperty("overflow-wrap", "anywhere", "important");
-    tab.style.setProperty("word-break", "break-word", "important");
-  });
+  tab.style.setProperty("flex", "1 1 0", "important");
+  tab.style.setProperty("width", "auto", "important");
+  tab.style.setProperty("height", "100%", "important");
+  tab.style.setProperty("min-width", "0", "important");
+  tab.style.setProperty("min-height", "0", "important");
+  tab.style.setProperty("box-sizing", "border-box", "important");
+  tab.style.setProperty("padding", "4px 3px", "important");
+  tab.style.setProperty("font-size", "12px", "important");
+  tab.style.setProperty("line-height", "1.15", "important");
+  tab.style.setProperty("white-space", "normal", "important");
+  tab.style.setProperty("overflow", "visible", "important");
+  tab.style.setProperty("overflow-wrap", "anywhere", "important");
+  tab.style.setProperty("word-break", "normal", "important");
+});
 }
 
 async function generatePNG() {
