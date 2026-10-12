@@ -353,11 +353,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   text-align:center;
 }
 
+
 /* TEAR-OFF TABS */
 
 .tabs {
   display:flex;
   height:19cqw;
+  min-height:19cqw;
   border-top:.4cqw dashed var(--fg);
   background:var(--bg);
   flex:none;
@@ -365,7 +367,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 
 .tab {
-  flex:1;
+  flex:1 1 0;
   min-width:0;
   min-height:0;
   border-left:.4cqw dashed var(--fg);
@@ -379,17 +381,25 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:.5cqw;
-  line-height:1;
-  overflow:hidden;
-  overflow-wrap:normal;
+  padding:1cqw .8cqw;
+  line-height:1.1;
+  overflow-wrap:anywhere;
   word-break:normal;
-  white-space:nowrap;
+  white-space:normal;
+  overflow:hidden;
+  text-align:center;
 }
 
 .tab:last-child {
   border-left-width:0;
 }
+
+/* Slightly shorter tabs on compact flyers */
+.z1 .tabs {
+  height:14cqw;
+  min-height:14cqw;
+}
+
 
 /* FONTS */
 
