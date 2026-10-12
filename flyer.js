@@ -283,7 +283,7 @@
 
     /* html2canvas can invert writing-mode transforms. Keep export tabs upright
        and shrink long labels to the available tear-off height. */
-       
+
  var tabNodes = clone.querySelectorAll(".tab");
 
 tabNodes.forEach(function (tab) {
@@ -394,4 +394,4 @@ tabNodes.forEach(function (tab) {
   if (mq.addEventListener) mq.addEventListener("change", mqChange); else mq.addListener(mqChange);
 
   resetTransforms(); select(null); load("show");
-})();
+}();
