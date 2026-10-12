@@ -254,32 +254,59 @@
       });
     }
 
-    var burst = clone.querySelector("#oBurst");
-    if (burst && burst.style.display !== "none" && burst.textContent.trim()) {
-      var accent = clone.style.getPropertyValue("--ac").trim() || getComputedStyle(fl).getPropertyValue("--ac").trim() || "#ff1493";
-      var points = [];
-      for (var i = 0; i < 32; i++) {
-        var angle = i * Math.PI / 16;
-        var radius = i % 2 ? 38 : 50;
-        points.push((50 + radius * Math.sin(angle)).toFixed(1) + "," + (50 - radius * Math.cos(angle)).toFixed(1));
-      }
-      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><polygon points="' + points.join(" ") + '" fill="' + accent + '"/></svg>';
-      var shape = document.createElement("img");
-      shape.alt = "";
-      shape.setAttribute("aria-hidden", "true");
-      shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-      shape.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;";
-      var label = document.createElement("span");
-      label.textContent = burst.textContent;
-      label.style.cssText = "position:relative;z-index:1;display:block;max-width:100%;";
-      burst.textContent = "";
-      burst.appendChild(shape);
-      burst.appendChild(label);
-      burst.style.backgroundColor = "transparent";
-      burst.style.backgroundImage = "none";
-      burst.style.clipPath = "none";
-      burst.style.webkitClipPath = "none";
-    }
+   var burst = clone.querySelector("#oBurst");
+
+if (burst && burst.textContent.trim()) {
+  // Read the actual accent color from the live flyer.
+  var accent = getComputedStyle(fl)
+    .getPropertyValue("--ac").trim() || "#ff1493";
+
+  var points = [];
+
+  for (var i = 0; i < 32; i++) {
+    var angle = i * Math.PI / 16;
+    var radius = i % 2 ? 38 : 50;
+
+    points.push(
+      (50 + radius * Math.sin(angle)).toFixed(1) + "," +
+      (50 - radius * Math.cos(angle)).toFixed(1)
+    );
+  }
+
+  var svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" ' +
+    'width="100" height="100" viewBox="0 0 100 100">' +
+    '<polygon points="' + points.join(" ") +
+    '" fill="' + accent + '"/></svg>';
+
+  var shape = document.createElement("img");
+  shape.alt = "";
+  shape.setAttribute("aria-hidden", "true");
+  shape.src =
+    "data:image/svg+xml;charset=utf-8," +
+    encodeURIComponent(svg);
+
+  shape.style.cssText =
+    "position:absolute;inset:0;width:100%;height:100%;" +
+    "display:block;z-index:0;pointer-events:none;";
+
+  var label = document.createElement("span");
+  label.textContent = burst.textContent;
+  label.style.cssText =
+    "position:absolute;inset:0;z-index:1;" +
+    "display:flex;align-items:center;justify-content:center;" +
+    "width:100%;height:100%;box-sizing:border-box;" +
+    "padding:8%;text-align:center;";
+
+  burst.textContent = "";
+  burst.appendChild(shape);
+  burst.appendChild(label);
+
+  burst.style.setProperty("background", "transparent", "important");
+  burst.style.setProperty("clip-path", "none", "important");
+  burst.style.setProperty("-webkit-clip-path", "none", "important");
+  burst.style.setProperty("overflow", "visible", "important");
+}
 
     /* html2canvas can invert writing-mode transforms. Keep export tabs upright
        and shrink long labels to the available tear-off height. */
