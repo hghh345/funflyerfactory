@@ -238,8 +238,8 @@
         letter.style.backgroundImage = "none";
         letter.style.backgroundClip = "border-box";
         letter.style.webkitBackgroundClip = "border-box";
-        letter.style.color = color;
-        letter.style.webkitTextFillColor = color;
+        letter.style.setProperty("color", color, "important");
+        letter.style.setProperty("-webkit-text-fill-color", color, "important");
         letter.style.filter = "none";
         if (styleIndex === 1) {
           letter.style.webkitTextStroke = "0.3cqw #000";
@@ -256,7 +256,7 @@
 
     var burst = clone.querySelector("#oBurst");
     if (burst && burst.style.display !== "none" && burst.textContent.trim()) {
-      var accent = getComputedStyle(clone).getPropertyValue("--ac").trim() || "#ff1493";
+      var accent = clone.style.getPropertyValue("--ac").trim() || getComputedStyle(fl).getPropertyValue("--ac").trim() || "#ff1493";
       var points = [];
       for (var i = 0; i < 32; i++) {
         var angle = i * Math.PI / 16;
@@ -280,6 +280,26 @@
       burst.style.clipPath = "none";
       burst.style.webkitClipPath = "none";
     }
+
+    /* html2canvas can invert writing-mode transforms. Keep export tabs upright
+       and shrink long labels to the available tear-off height. */
+    var tabNodes = clone.querySelectorAll(".tab");
+    tabNodes.forEach(function (tab) {
+      var labelText = (tab.textContent || "").trim();
+      var length = Math.max(1, labelText.length);
+      var width = Number(E.sz.value) === 0 ? 1275 : (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
+      var maxFont = width * 0.027;
+      var fitFont = (width * 0.175) / length;
+      tab.style.setProperty("transform", "none", "important");
+      tab.style.setProperty("-webkit-transform", "none", "important");
+      tab.style.setProperty("writing-mode", "vertical-rl", "important");
+      tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+      tab.style.setProperty("text-orientation", "mixed", "important");
+      tab.style.setProperty("white-space", "nowrap", "important");
+      tab.style.setProperty("font-size", Math.max(width * 0.006, Math.min(maxFont, fitFont)) + "px", "important");
+      tab.style.setProperty("line-height", "1", "important");
+      tab.style.setProperty("overflow", "hidden", "important");
+    });
   }
 
   async function generatePNG() {
