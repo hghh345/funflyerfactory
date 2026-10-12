@@ -458,21 +458,24 @@ document.getElementById("save").addEventListener("click", async function () {
     });
 
     // Export the flyer as a PNG, without opening print options.
-    blob = await htmlToImage.toBlob(flyer, {
-      width: W,
-      height: H,
-      pixelRatio: 1,
-      backgroundColor: "#ffffff",
-      cacheBust: true,
-      style: {
-        width: W + "px",
-        height: H + "px",
-        maxWidth: "none",
-        aspectRatio: "auto",
-        margin: "0",
-        transform: "none"
-      }
-    });
+  
+blob = await htmlToImage.toBlob(flyer, {
+  width: W,
+  height: H,
+  pixelRatio: 1,
+  backgroundColor: "#ffffff",
+  cacheBust: true,
+  skipFonts: true,
+  style: {
+    width: W + "px",
+    height: H + "px",
+    maxWidth: "none",
+    aspectRatio: "auto",
+    margin: "0",
+    transform: "none"
+  }
+});
+
 
     if (!blob) {
       throw new Error("The PNG could not be created.");
