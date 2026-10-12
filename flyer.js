@@ -328,15 +328,6 @@ document.getElementById("save").addEventListener("click", async function () {
   var picture = document.getElementById("oPic");
   var selectedElements = [];
   var restoreLayout = null;
-  var photoGeom = null;
-
-  // saved picture state
-  var savedSrc = null;
-  var savedVis = null;
-  var savedDisp = null;
-
-  var TRANSPARENT_PX =
-    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
   if (button.disabled) return;
   button.disabled = true;
@@ -354,57 +345,15 @@ document.getElementById("save").addEventListener("click", async function () {
 
     var hasPhoto = !!(pic && picture && !picture.hidden);
 
-    /* --- Handle the picture element --- */
-    if (picture) {
-      savedSrc = picture.getAttribute("src");
-      savedVis = picture.style.visibility;
-      savedDisp = picture.style.display;
-
-      if (hasPhoto) {
-        try { await picture.decode(); } catch (e) {}
-
-        // Measure geometry with transforms stripped
-        var sT = picture.style.translate;
-        var sR = picture.style.rotate;
-        var sS = picture.style.scale;
-        var sF = picture.style.transform;
-
-        picture.style.translate = "none";
-        picture.style.rotate = "none";
-        picture.style.scale = "none";
-        picture.style.transform = "none";
-        void picture.offsetWidth;
-
-        var pr = picture.getBoundingClientRect();
-        var fr0 = flyer.getBoundingClientRect();
-        var t = T["oPic"] || { x: 0, y: 0, r: 0, s: 1 };
-
-        photoGeom = {
-          left: pr.left - fr0.left,
-          top: pr.top - fr0.top,
-          w: pr.width,
-          h: pr.height,
-          flyerW: fr0.width,
-          flyerH: fr0.height,
-          tx: t.x || 0,
-          ty: t.y || 0,
-          tr: t.r || 0,
-          ts: t.s || 1
-        };
-
-        picture.style.translate = sT;
-        picture.style.rotate = sR;
-        picture.style.scale = sS;
-        picture.style.transform = sF;
+    /* Make sure the img has a valid src and is fully decoded */
+    if (hasPhoto) {
+      if (picture.getAttribute("src") !== pic) {
+        picture.setAttribute("src", pic);
       }
-
-      // Give the img a VALID src so html-to-image has nothing to fail on.
-      picture.setAttribute("src", TRANSPARENT_PX);
-      // Hide it from the render entirely.
-      picture.style.display = "none";
+      try { await picture.decode(); } catch (e) {}
     }
 
-    /* --- Clear selection outlines --- */
+    /* Clear selection outlines */
     flyer.querySelectorAll(".sel").forEach(function (el) {
       selectedElements.push(el);
       el.classList.remove("sel");
@@ -415,10 +364,10 @@ document.getElementById("save").addEventListener("click", async function () {
     var W = size[0];
     var H = size[1];
 
-    var fr2 = flyer.getBoundingClientRect();
-    var pixelRatio = W / fr2.width;
+    var fr = flyer.getBoundingClientRect();
+    var pixelRatio = W / fr.width;
 
-    /* --- Bake cqw values as px for this render --- */
+    /* Bake cqw values as px so every browser renders identically */
     restoreLayout = bakeLayoutPx(flyer);
 
     var canvas;
@@ -431,41 +380,6 @@ document.getElementById("save").addEventListener("click", async function () {
     } finally {
       restoreLayout();
       restoreLayout = null;
-    }
-
-    /* --- Composite the real photo manually --- */
-    if (photoGeom) {
-      await new Promise(function (resolve, reject) {
-        var img = new Image();
-        img.onload = function () {
-          try {
-            var sx = canvas.width / photoGeom.flyerW;
-            var sy = canvas.height / photoGeom.flyerH;
-
-            var cx = (photoGeom.left + photoGeom.w / 2) * sx;
-            var cy = (photoGeom.top + photoGeom.h / 2) * sy;
-            var w = photoGeom.w * sx;
-            var h = photoGeom.h * sy;
-
-            var ox = photoGeom.tx * (photoGeom.flyerW / 100) * sx;
-            var oy = photoGeom.ty * (photoGeom.flyerW / 100) * sy;
-
-            var rot = (-2 + photoGeom.tr) * Math.PI / 180;
-            var s = photoGeom.ts;
-
-            var ctx = canvas.getContext("2d");
-            ctx.save();
-            ctx.translate(cx + ox, cy + oy);
-            ctx.rotate(rot);
-            ctx.scale(s, s);
-            ctx.drawImage(img, -w / 2, -h / 2, w, h);
-            ctx.restore();
-            resolve();
-          } catch (e) { reject(e); }
-        };
-        img.onerror = function () { reject(new Error("Photo couldn't be loaded.")); };
-        img.src = pic;
-      });
     }
 
     var blob = await new Promise(function (resolve) {
@@ -499,15 +413,6 @@ document.getElementById("save").addEventListener("click", async function () {
     say("Couldn't make the PNG. " + (err && err.message ? err.message : ""));
   } finally {
     if (restoreLayout) { try { restoreLayout(); } catch (e) {} }
-
-    /* --- Restore picture state --- */
-    if (picture) {
-      if (savedSrc != null) picture.setAttribute("src", savedSrc);
-      else picture.removeAttribute("src");
-      picture.style.visibility = savedVis == null ? "" : savedVis;
-      picture.style.display = savedDisp == null ? "" : savedDisp;
-    }
-
     selectedElements.forEach(function (el) { el.classList.add("sel"); });
     button.disabled = false;
     button.textContent = originalText;
