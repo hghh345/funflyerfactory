@@ -429,17 +429,18 @@ document.getElementById("save").addEventListener("click", async function () {
     // Wait for an uploaded picture to finish loading.
     var picture = document.getElementById("oPic");
 
-    if (
-      picture &&
-      !picture.hidden &&
-      picture.src &&
-      !picture.complete
-    ) {
-      await new Promise(function (resolve) {
-        picture.onload = resolve;
-        picture.onerror = resolve;
-      });
-    }
+ 
+if (
+  picture &&
+  !picture.hidden &&
+  picture.getAttribute("src") &&
+  !picture.complete
+) {
+  await new Promise(function (resolve) {
+    picture.addEventListener("load", resolve, { once: true });
+    picture.addEventListener("error", resolve, { once: true });
+  });
+}
 
     // Get the selected output dimensions.
     var sizeIndex = Number(E.sz.value);
