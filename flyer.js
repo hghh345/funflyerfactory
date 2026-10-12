@@ -275,10 +275,6 @@ function say(t){
 
 
 /* ---------- bake cqw-derived values as px ---------- */
-/* Chrome's SVG foreignObject doesn't resolve container query
-   units (cqw) reliably — it treats them as 0. Bake computed
-   styles as inline px before rasterizing so every browser
-   renders the clone identically. */
 
 function bakeLayoutPx(root){
   var PROPS=[
@@ -332,8 +328,15 @@ document.getElementById("save").addEventListener("click", async function () {
   var picture = document.getElementById("oPic");
   var selectedElements = [];
   var restoreLayout = null;
-  var savedVis = "";
   var photoGeom = null;
+
+  // saved picture state
+  var savedSrc = null;
+  var savedVis = null;
+  var savedDisp = null;
+
+  var TRANSPARENT_PX =
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
   if (button.disabled) return;
   button.disabled = true;
@@ -351,57 +354,57 @@ document.getElementById("save").addEventListener("click", async function () {
 
     var hasPhoto = !!(pic && picture && !picture.hidden);
 
-    /* If there's no photo, temporarily detach the img so html-to-image
-       never sees an src-less <img> (which makes it reject with a raw Event). */
-    var picParent = null, picNext = null;
-    if (!hasPhoto && picture && picture.parentNode) {
-      picParent = picture.parentNode;
-      picNext = picture.nextSibling;
-      picture.remove();
-    }
-
-    /* --- measure photo geometry, then hide it --- */
-    if (hasPhoto) {
-      try { await picture.decode(); } catch (e) {}
-
+    /* --- Handle the picture element --- */
+    if (picture) {
+      savedSrc = picture.getAttribute("src");
       savedVis = picture.style.visibility;
+      savedDisp = picture.style.display;
 
-      var sT = picture.style.translate;
-      var sR = picture.style.rotate;
-      var sS = picture.style.scale;
-      var sF = picture.style.transform;
+      if (hasPhoto) {
+        try { await picture.decode(); } catch (e) {}
 
-      picture.style.translate = "none";
-      picture.style.rotate = "none";
-      picture.style.scale = "none";
-      picture.style.transform = "none";
-      void picture.offsetWidth;
+        // Measure geometry with transforms stripped
+        var sT = picture.style.translate;
+        var sR = picture.style.rotate;
+        var sS = picture.style.scale;
+        var sF = picture.style.transform;
 
-      var pr = picture.getBoundingClientRect();
-      var fr0 = flyer.getBoundingClientRect();
-      var t = T["oPic"] || { x: 0, y: 0, r: 0, s: 1 };
+        picture.style.translate = "none";
+        picture.style.rotate = "none";
+        picture.style.scale = "none";
+        picture.style.transform = "none";
+        void picture.offsetWidth;
 
-      photoGeom = {
-        left: pr.left - fr0.left,
-        top: pr.top - fr0.top,
-        w: pr.width,
-        h: pr.height,
-        flyerW: fr0.width,
-        flyerH: fr0.height,
-        tx: t.x || 0,
-        ty: t.y || 0,
-        tr: t.r || 0,
-        ts: t.s || 1
-      };
+        var pr = picture.getBoundingClientRect();
+        var fr0 = flyer.getBoundingClientRect();
+        var t = T["oPic"] || { x: 0, y: 0, r: 0, s: 1 };
 
-      picture.style.translate = sT;
-      picture.style.rotate = sR;
-      picture.style.scale = sS;
-      picture.style.transform = sF;
-      picture.style.visibility = "hidden";
+        photoGeom = {
+          left: pr.left - fr0.left,
+          top: pr.top - fr0.top,
+          w: pr.width,
+          h: pr.height,
+          flyerW: fr0.width,
+          flyerH: fr0.height,
+          tx: t.x || 0,
+          ty: t.y || 0,
+          tr: t.r || 0,
+          ts: t.s || 1
+        };
+
+        picture.style.translate = sT;
+        picture.style.rotate = sR;
+        picture.style.scale = sS;
+        picture.style.transform = sF;
+      }
+
+      // Give the img a VALID src so html-to-image has nothing to fail on.
+      picture.setAttribute("src", TRANSPARENT_PX);
+      // Hide it from the render entirely.
+      picture.style.display = "none";
     }
 
-    /* --- clear selection outlines --- */
+    /* --- Clear selection outlines --- */
     flyer.querySelectorAll(".sel").forEach(function (el) {
       selectedElements.push(el);
       el.classList.remove("sel");
@@ -415,28 +418,22 @@ document.getElementById("save").addEventListener("click", async function () {
     var fr2 = flyer.getBoundingClientRect();
     var pixelRatio = W / fr2.width;
 
-    /* --- bake cqw values as px for this render --- */
+    /* --- Bake cqw values as px for this render --- */
     restoreLayout = bakeLayoutPx(flyer);
-    if (hasPhoto) picture.style.visibility = "hidden";
-    if (!hasPhoto && picture && picture.parentNode) picture.remove();
 
     var canvas;
     try {
       canvas = await htmlToImage.toCanvas(flyer, {
         pixelRatio: pixelRatio,
         backgroundColor: null,
-        skipFonts: true,
-        filter: function (node) {
-          return !(node && node.id === "oPic");
-        }
+        skipFonts: true
       });
     } finally {
       restoreLayout();
       restoreLayout = null;
-      if (hasPhoto) picture.style.visibility = "hidden";
     }
 
-    /* --- composite the photo manually --- */
+    /* --- Composite the real photo manually --- */
     if (photoGeom) {
       await new Promise(function (resolve, reject) {
         var img = new Image();
@@ -502,9 +499,15 @@ document.getElementById("save").addEventListener("click", async function () {
     say("Couldn't make the PNG. " + (err && err.message ? err.message : ""));
   } finally {
     if (restoreLayout) { try { restoreLayout(); } catch (e) {} }
-    if (picture) picture.style.visibility = savedVis;
-    if (picParent && picNext) picParent.insertBefore(picture, picNext);
-    else if (picParent) picParent.appendChild(picture);
+
+    /* --- Restore picture state --- */
+    if (picture) {
+      if (savedSrc != null) picture.setAttribute("src", savedSrc);
+      else picture.removeAttribute("src");
+      picture.style.visibility = savedVis == null ? "" : savedVis;
+      picture.style.display = savedDisp == null ? "" : savedDisp;
+    }
+
     selectedElements.forEach(function (el) { el.classList.add("sel"); });
     button.disabled = false;
     button.textContent = originalText;
