@@ -283,24 +283,43 @@
 
     /* html2canvas can invert writing-mode transforms. Keep export tabs upright
        and shrink long labels to the available tear-off height. */
-    var tabNodes = clone.querySelectorAll(".tab");
-    tabNodes.forEach(function (tab) {
-      var labelText = (tab.textContent || "").trim();
-      var length = Math.max(1, labelText.length);
-      var width = Number(E.sz.value) === 0 ? 1275 : (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-      var maxFont = width * 0.027;
-      var fitFont = (width * 0.175) / length;
-      tab.style.setProperty("transform", "none", "important");
-      tab.style.setProperty("-webkit-transform", "none", "important");
-      tab.style.setProperty("writing-mode", "vertical-rl", "important");
-      tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
-      tab.style.setProperty("text-orientation", "mixed", "important");
-      tab.style.setProperty("white-space", "nowrap", "important");
-      tab.style.setProperty("font-size", Math.max(width * 0.006, Math.min(maxFont, fitFont)) + "px", "important");
-      tab.style.setProperty("line-height", "1", "important");
-      tab.style.setProperty("overflow", "hidden", "important");
-    });
-  }
+
+var tabNodes = clone.querySelectorAll(".tab");
+
+tabNodes.forEach(function (tab) {
+  var labelText = (tab.textContent || "").trim();
+  var length = Math.max(1, labelText.length);
+
+  var width = Number(E.sz.value) === 0
+    ? 1275
+    : (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
+
+  // Use the actual exported tab dimensions.
+  var tabHeight = tab.parentElement
+    ? tab.parentElement.getBoundingClientRect().height
+    : width * 0.19;
+
+  // Larger, readable labels with a gentler reduction for long text.
+  var maxFont = width * 0.027;
+  var minFont = width * 0.014;
+  var availableHeight = tabHeight * 0.82;
+  var fitFont = availableHeight / length;
+
+  var fontSize = Math.max(
+    minFont,
+    Math.min(maxFont, fitFont)
+  );
+
+  tab.style.setProperty("transform", "none", "important");
+  tab.style.setProperty("-webkit-transform", "none", "important");
+  tab.style.setProperty("writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("text-orientation", "mixed", "important");
+  tab.style.setProperty("white-space", "nowrap", "important");
+  tab.style.setProperty("font-size", fontSize + "px", "important");
+  tab.style.setProperty("line-height", "1", "important");
+  tab.style.setProperty("overflow", "hidden", "important");
+});
 
   async function generatePNG() {
     if (busy) return;
