@@ -339,6 +339,7 @@ tabNodes.forEach(function (tab) {
   );
 });
   }
+}
 
   async function generatePNG() {
     if (busy) return;
