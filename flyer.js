@@ -402,75 +402,81 @@ function say(t){
 document.getElementById("save").addEventListener("click", async function () {
   var button = this;
   var originalText = button.textContent;
+  var flyer = document.getElementById("fl");
+  var selectedElements = [];
+  var blob = null;
 
   if (button.disabled) return;
 
   button.disabled = true;
   button.textContent = "Making your flyer...";
-  say("Preparing your finished flyer...");
+  say("Preparing your flyer...");
 
   try {
+    if (typeof htmlToImage === "undefined") {
+      throw new Error("html-to-image did not load. Check the script in your HTML.");
+    }
+
+    if (!flyer) {
+      throw new Error("Could not find the flyer preview.");
+    }
+
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
 
-    var size = PX[Number(E.sz.value)];
-    var flyer = document.getElementById("fl");
-
-    if (!size || !flyer || typeof html2canvas !== "function") {
-      throw new Error("The flyer or export library is unavailable.");
-    }
-
-    var W = size[0];
-    var H = size[1];
+    // Wait for an uploaded picture to finish loading.
     var picture = document.getElementById("oPic");
 
-    if (picture && !picture.hidden && picture.src && !picture.complete) {
+    if (
+      picture &&
+      !picture.hidden &&
+      picture.src &&
+      !picture.complete
+    ) {
       await new Promise(function (resolve) {
         picture.onload = resolve;
         picture.onerror = resolve;
       });
     }
 
-    var canvas = await html2canvas(flyer, {
-      scale: 1,
+    // Get the selected output dimensions.
+    var sizeIndex = Number(E.sz.value);
+    var size = PX[sizeIndex] || PX[0];
+    var W = size[0];
+    var H = size[1];
+
+    // Temporarily remove selection outlines from the export.
+    if (flyer.classList.contains("sel")) {
+      selectedElements.push(flyer);
+      flyer.classList.remove("sel");
+    }
+
+    flyer.querySelectorAll(".sel").forEach(function (el) {
+      selectedElements.push(el);
+      el.classList.remove("sel");
+    });
+
+    // Export the flyer as a PNG, without opening print options.
+    blob = await htmlToImage.toBlob(flyer, {
       width: W,
       height: H,
-      windowWidth: Math.max(document.documentElement.clientWidth, W),
-      backgroundColor: null,
-      logging: false,
-      onclone: function (clonedDoc) {
-        var clonedFlyer = clonedDoc.getElementById("fl");
-
-        clonedDoc.querySelectorAll(".sel").forEach(function (el) {
-          el.classList.remove("sel");
-        });
-
-        if (clonedFlyer) {
-          clonedFlyer.style.setProperty("width", W + "px", "important");
-          clonedFlyer.style.setProperty("height", H + "px", "important");
-          clonedFlyer.style.setProperty("max-width", "none", "important");
-          clonedFlyer.style.setProperty("aspect-ratio", "auto", "important");
-          clonedFlyer.style.setProperty("box-shadow", "none", "important");
-        }
+      pixelRatio: 1,
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+      style: {
+        width: W + "px",
+        height: H + "px",
+        maxWidth: "none",
+        aspectRatio: "auto",
+        margin: "0",
+        transform: "none"
       }
     });
 
-    // Ensure the final PNG uses the selected output dimensions.
-    var output = document.createElement("canvas");
-    output.width = W;
-    output.height = H;
-
-    var ctx = output.getContext("2d");
-    if (!ctx) throw new Error("Could not create the output canvas.");
-
-    ctx.drawImage(canvas, 0, 0, W, H);
-
-    var blob = await new Promise(function (resolve) {
-      output.toBlob(resolve, "image/png");
-    });
-
-    if (!blob) throw new Error("Could not create the PNG.");
+    if (!blob) {
+      throw new Error("The PNG could not be created.");
+    }
 
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
@@ -485,19 +491,25 @@ document.getElementById("save").addEventListener("click", async function () {
 
     setTimeout(function () {
       URL.revokeObjectURL(url);
-    }, 60000);
+    }, 10000);
 
-  say("Your PNG is ready! Check your downloads.");
-button.disabled = false;
-button.textContent = originalText;
+    say("Your flyer is ready! Check your downloads.");
 
   } catch (err) {
     console.error("Flyer export failed:", err);
-    say("Something went wrong. Please try again.");
+    say("Couldn't make the PNG. Please try again.");
+
+  } finally {
+    // Restore selection outlines in the editor.
+    selectedElements.forEach(function (el) {
+      el.classList.add("sel");
+    });
+
     button.disabled = false;
     button.textContent = originalText;
   }
 });
+
 
 /* ---------- picture upload ---------- */
 
