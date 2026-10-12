@@ -338,7 +338,7 @@ tabNodes.forEach(function (tab) {
     "important"
   );
 });
-  
+  }
 
   async function generatePNG() {
     if (busy) return;
