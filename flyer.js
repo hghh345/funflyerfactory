@@ -197,6 +197,91 @@
     }));
   }
 
+  /* html2canvas does not reliably reproduce gradient text or CSS clip-path.
+     Convert those effects only in the export clone, leaving the live preview untouched. */
+  function prepareCloneForCanvas(clone) {
+    var headline = clone.querySelector("#oHead");
+    var styleIndex = Number(E.wa.value);
+    var palettes = {
+      1: ["#ff2020", "#ff8a00", "#ffe600", "#18b83c", "#008cff", "#8b35ff", "#ff42b8"],
+      4: ["#ffffff", "#b8d9ff", "#5b77a9", "#f4f8ff", "#7d9acb", "#eaf4ff", "#ffffff"],
+      5: ["#fff200", "#ffb000", "#ff6a00", "#e51b00", "#ff8a00", "#ffe600", "#cf1600"]
+    };
+    if (headline && palettes[styleIndex]) {
+      var hasLetterSpans = headline.querySelector(".l");
+      if (!hasLetterSpans) {
+        var text = headline.textContent || "";
+        headline.textContent = "";
+        text.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) {
+            headline.appendChild(document.createTextNode(part));
+            return;
+          }
+          var word = document.createElement("span");
+          word.className = "wd";
+          Array.from(part).forEach(function (character) {
+            var letter = document.createElement("span");
+            letter.className = "l export-wordart-letter";
+            letter.textContent = character;
+            word.appendChild(letter);
+          });
+          headline.appendChild(word);
+        });
+      }
+      ["w1", "w4", "w5"].forEach(function (name) { headline.classList.remove(name); });
+      headline.querySelectorAll(".l").forEach(function (letter, index) {
+        ["w1", "w4", "w5"].forEach(function (name) { letter.classList.remove(name); });
+        var colors = palettes[styleIndex];
+        var color = colors[index % colors.length];
+        letter.style.background = "none";
+        letter.style.backgroundImage = "none";
+        letter.style.backgroundClip = "border-box";
+        letter.style.webkitBackgroundClip = "border-box";
+        letter.style.color = color;
+        letter.style.webkitTextFillColor = color;
+        letter.style.filter = "none";
+        if (styleIndex === 1) {
+          letter.style.webkitTextStroke = "0.3cqw #000";
+          letter.style.textShadow = "0.8cqw 0.8cqw 0 #000";
+        } else if (styleIndex === 4) {
+          letter.style.webkitTextStroke = "0.35cqw #002044";
+          letter.style.textShadow = "0.7cqw 0.7cqw 0 rgba(0,0,0,.55)";
+        } else {
+          letter.style.webkitTextStroke = "0.4cqw #3b0000";
+          letter.style.textShadow = "0.6cqw 0.6cqw 0 #000";
+        }
+      });
+    }
+
+    var burst = clone.querySelector("#oBurst");
+    if (burst && burst.style.display !== "none" && burst.textContent.trim()) {
+      var accent = getComputedStyle(clone).getPropertyValue("--ac").trim() || "#ff1493";
+      var points = [];
+      for (var i = 0; i < 32; i++) {
+        var angle = i * Math.PI / 16;
+        var radius = i % 2 ? 38 : 50;
+        points.push((50 + radius * Math.sin(angle)).toFixed(1) + "," + (50 - radius * Math.cos(angle)).toFixed(1));
+      }
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><polygon points="' + points.join(" ") + '" fill="' + accent + '"/></svg>';
+      var shape = document.createElement("img");
+      shape.alt = "";
+      shape.setAttribute("aria-hidden", "true");
+      shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      shape.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;";
+      var label = document.createElement("span");
+      label.textContent = burst.textContent;
+      label.style.cssText = "position:relative;z-index:1;display:block;max-width:100%;";
+      burst.textContent = "";
+      burst.appendChild(shape);
+      burst.appendChild(label);
+      burst.style.backgroundColor = "transparent";
+      burst.style.backgroundImage = "none";
+      burst.style.clipPath = "none";
+      burst.style.webkitClipPath = "none";
+    }
+  }
+
   async function generatePNG() {
     if (busy) return;
     if (typeof window.html2canvas !== "function") { say("The PNG tool didn't load. Check your internet connection and reload the page."); return; }
@@ -207,6 +292,7 @@
       clone.querySelectorAll(".sel").forEach(function (el) { el.classList.remove("sel"); });
       clone.style.width = format.w + "px"; clone.style.maxWidth = "none"; clone.style.height = "auto"; clone.style.margin = "0"; clone.style.boxShadow = "none";
       clone.style.position = "relative"; clone.style.left = "auto"; clone.style.top = "auto";
+      prepareCloneForCanvas(clone);
       stage.setAttribute("aria-hidden", "true");
       stage.style.cssText = "position:fixed;left:-20000px;top:0;width:" + format.w + "px;z-index:-1;pointer-events:none;overflow:hidden;background:transparent;";
       stage.appendChild(clone); document.body.appendChild(stage);
