@@ -475,22 +475,14 @@ document.getElementById("save").addEventListener("click", async function () {
     });
 
   
-blob = await htmlToImage.toBlob(flyer, {
-  pixelRatio: 2,
-  backgroundColor: null,
-  cacheBust: true,
-  skipFonts: true,
-  filter: function (node) {
-    if (node.id === "oPic") {
-      return node.hidden ||
-        !node.getAttribute("src") ||
-        (node.complete && node.naturalWidth === 0)
-        ? false
-        : true;
-    }
-    return true;
-  }
-});
+
+    blob = await htmlToImage.toBlob(flyer, {
+      pixelRatio: 2,
+      backgroundColor: null,
+      cacheBust: true,
+      skipFonts: true
+    });
+
 
     if (!blob) {
       throw new Error("The PNG could not be created.");
