@@ -393,18 +393,15 @@ function say(t){
 }
 
 
-
-
-
-
-/* ---------- make, download and print flyer ---------- */
+/* ---------- make and download flyer ---------- */
 
 document.getElementById("save").addEventListener("click", async function () {
   var button = this;
   var originalText = button.textContent;
   var flyer = document.getElementById("fl");
   var selectedElements = [];
-  var blob = null;
+  var picture = document.getElementById("oPic");
+  var pictureBackup = null;
 
   if (button.disabled) return;
 
@@ -413,42 +410,46 @@ document.getElementById("save").addEventListener("click", async function () {
   say("Preparing your flyer...");
 
   try {
-    if (typeof htmlToImage === "undefined") {
-      throw new Error("html-to-image did not load. Check the script in your HTML.");
+    if (
+      !flyer ||
+      typeof htmlToImage === "undefined" ||
+      typeof htmlToImage.toBlob !== "function"
+    ) {
+      throw new Error("The flyer or html-to-image library is unavailable.");
     }
-
-   if (!flyer || typeof htmlToImage === "undefined" ||
-    typeof htmlToImage.toBlob !== "function") {
-  throw new Error("The flyer or html-to-image library is unavailable.");
-}
 
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
 
-    // Wait for an uploaded picture to finish loading.
-    var picture = document.getElementById("oPic");
+    // Check the flyer picture before exporting.
+    if (picture && !picture.hidden && picture.getAttribute("src")) {
+      if (!picture.complete) {
+        await new Promise(function (resolve) {
+          picture.addEventListener("load", resolve, { once: true });
+          picture.addEventListener("error", resolve, { once: true });
+        });
+      }
 
- 
-if (
-  picture &&
-  !picture.hidden &&
-  picture.getAttribute("src") &&
-  !picture.complete
-) {
-  await new Promise(function (resolve) {
-    picture.addEventListener("load", resolve, { once: true });
-    picture.addEventListener("error", resolve, { once: true });
-  });
-}
+      // If the picture failed to load, omit it from this PNG.
+      // Restore it in the editor immediately after export.
+      if (!picture.complete || picture.naturalWidth === 0) {
+        pictureBackup = {
+          src: picture.getAttribute("src"),
+          hidden: picture.hidden
+        };
 
-    // Get the selected output dimensions.
+        picture.removeAttribute("src");
+        picture.hidden = true;
+      }
+    }
+
     var sizeIndex = Number(E.sz.value);
     var size = PX[sizeIndex] || PX[0];
     var W = size[0];
     var H = size[1];
 
-    // Temporarily remove selection outlines from the export.
+    // Temporarily remove editor selection outlines.
     if (flyer.classList.contains("sel")) {
       selectedElements.push(flyer);
       flyer.classList.remove("sel");
@@ -459,25 +460,22 @@ if (
       el.classList.remove("sel");
     });
 
-    // Export the flyer as a PNG, without opening print options.
-  
-blob = await htmlToImage.toBlob(flyer, {
-  width: W,
-  height: H,
-  pixelRatio: 1,
-  backgroundColor: "#ffffff",
-  cacheBust: true,
-  skipFonts: true,
-  style: {
-    width: W + "px",
-    height: H + "px",
-    maxWidth: "none",
-    aspectRatio: "auto",
-    margin: "0",
-    transform: "none"
-  }
-});
-
+    blob = await htmlToImage.toBlob(flyer, {
+      width: W,
+      height: H,
+      pixelRatio: 1,
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+      skipFonts: true,
+      style: {
+        width: W + "px",
+        height: H + "px",
+        maxWidth: "none",
+        aspectRatio: "auto",
+        margin: "0",
+        transform: "none"
+      }
+    });
 
     if (!blob) {
       throw new Error("The PNG could not be created.");
@@ -502,10 +500,16 @@ blob = await htmlToImage.toBlob(flyer, {
 
   } catch (err) {
     console.error("Flyer export failed:", err);
-    say("Couldn't make the PNG. Please try again.");
+    say("Couldn't make the PNG. Check the browser console for details.");
 
   } finally {
-    // Restore selection outlines in the editor.
+    // Restore the picture in the editor if it was temporarily omitted.
+    if (pictureBackup && picture) {
+      picture.setAttribute("src", pictureBackup.src);
+      picture.hidden = pictureBackup.hidden;
+    }
+
+    // Restore selection outlines.
     selectedElements.forEach(function (el) {
       el.classList.add("sel");
     });
