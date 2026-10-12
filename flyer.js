@@ -78,25 +78,9 @@ var C=[
 
 
 var ids=[
-  "head",
-  "burst",
-  "sub",
-  "body",
-  "when",
-  "tab",
-  "wa",
-  "font",
-  "col",
-  "pat",
-  "bd",
-  "dg",
-  "sz",
-  "tabs",
-  "shape",
-  "bw",
-  "c0",
-  "c1",
-  "c2"
+  "head","burst","sub","body","when","tab",
+  "wa","font","col","pat","bd","dg","sz",
+  "tabs","shape","bw","c0","c1","c2"
 ];
 
 var E={};
@@ -108,26 +92,10 @@ ids.forEach(function(i){
 
 
 var fl=document.getElementById("fl");
-
 var pic="";
-
-var AR=[
-  "8.5/11",
-  "1/1",
-  "4/5",
-  "9/16"
-];
-
-var PX=[
-  [1275,1650],
-  [800,800],
-  [1080,1350],
-  [1080,1920]
-];
-
+var AR=["8.5/11","1/1","4/5","9/16"];
+var PX=[[1275,1650],[800,800],[1080,1350],[1080,1920]];
 var msg=document.getElementById("msg");
-
-var dl=null;
 
 
 /* ---------- star shape ---------- */
@@ -135,21 +103,15 @@ var dl=null;
 var pts=[];
 
 for(var i=0;i<32;i++){
-
   var a=i*Math.PI/16;
   var r=i%2?38:50;
-
   pts.push(
     (50+r*Math.sin(a)).toFixed(1)+"% "+
     (50-r*Math.cos(a)).toFixed(1)+"%"
   );
-
 }
 
-fl.style.setProperty(
-  "--star",
-  "polygon("+pts.join(",")+")"
-);
+fl.style.setProperty("--star","polygon("+pts.join(",")+")");
 
 
 /* ---------- draw flyer ---------- */
@@ -169,48 +131,33 @@ function draw(){
   fl.style.setProperty("--ac",c[2]);
 
   fl.className=
-    "flyer b"+
-    E.bd.value+
-    " p"+
-    E.pat.value+
-    " f"+
-    E.font.value+
-    " z"+
-    E.sz.value+
+    "flyer b"+E.bd.value+
+    " p"+E.pat.value+
+    " f"+E.font.value+
+    " z"+E.sz.value+
     (E.bw.checked?" bw":"");
 
-  fl.style.setProperty(
-    "--ar",
-    AR[+E.sz.value]
-  );
-
+  fl.style.setProperty("--ar",AR[+E.sz.value]);
 
   /* photo */
 
   var pc=document.getElementById("oPic");
 
   if(pic){
-
     pc.src=pic;
     pc.hidden=false;
-
   }else{
-
     pc.removeAttribute("src");
     pc.hidden=true;
-
   }
-
 
   /* headline */
 
   var h=document.getElementById("oHead");
-
   var sh=+E.shape.value;
   var tx=E.head.value;
 
   h.textContent="";
-
 
   if(!sh){
 
@@ -221,65 +168,43 @@ function draw(){
 
     h.className="head";
 
-    var cs=tx
-      .replace(/\s+/g," ")
-      .trim();
-
+    var cs=tx.replace(/\s+/g," ").trim();
     var n=cs.replace(/ /g,"").length;
     var k=0;
 
     cs.split(" ").forEach(function(w,wi){
 
       if(wi){
-        h.appendChild(
-          document.createTextNode(" ")
-        );
+        h.appendChild(document.createTextNode(" "));
       }
 
       var ws=document.createElement("span");
-
       ws.className="wd";
 
       w.split("").forEach(function(ch){
 
         var l=document.createElement("span");
-
-        var t=
-          (k-(n-1)/2)/
-          Math.max(1,n/2);
-
+        var t=(k-(n-1)/2)/Math.max(1,n/2);
         var y,r;
 
         if(sh==1){
-
           y=Math.sin(k*.9)*1.6;
           r=0;
-
         }else if(sh==2){
-
           y=t*t*6;
           r=t*20;
-
         }else{
-
           y=Math.sin(k*12.9)*1.2;
           r=Math.sin(k*7.7)*8;
-
         }
 
         l.className="l w"+E.wa.value;
-
         l.textContent=ch;
-
         l.style.transform=
-          "translateY("+
-          y.toFixed(2)+
-          "cqw) rotate("+
-          r.toFixed(1)+
-          "deg)";
+          "translateY("+y.toFixed(2)+"cqw) rotate("+
+          r.toFixed(1)+"deg)";
 
         ws.appendChild(l);
-
         k++;
 
       });
@@ -290,65 +215,35 @@ function draw(){
 
   }
 
-
   /* text */
 
   var s=document.getElementById("oSub");
-
   s.textContent=E.sub.value;
+  s.style.display=E.sub.value?"inline-block":"none";
 
-  s.style.display=
-    E.sub.value
-      ?"inline-block"
-      :"none";
-
-
-  document.getElementById("oBody").textContent=
-    E.body.value;
-
-  document.getElementById("oWhen").textContent=
-    E.when.value;
-
-  document.getElementById("oDg").textContent=
-    E.dg.value;
-
+  document.getElementById("oBody").textContent=E.body.value;
+  document.getElementById("oWhen").textContent=E.when.value;
+  document.getElementById("oDg").textContent=E.dg.value;
 
   /* sticker */
 
   var b=document.getElementById("oBurst");
-
   b.textContent=E.burst.value;
-
-  b.style.display=
-    E.burst.value
-      ?"flex"
-      :"none";
-
+  b.style.display=E.burst.value?"flex":"none";
 
   /* tear-offs */
 
   var t=document.getElementById("oTabs");
-
-  t.style.display=
-    E.tabs.checked
-      ?"flex"
-      :"none";
-
-  E.tab.disabled=
-    !E.tabs.checked;
+  t.style.display=E.tabs.checked?"flex":"none";
+  E.tab.disabled=!E.tabs.checked;
 
   t.innerHTML="";
 
   for(var i=0;i<8;i++){
-
     var d=document.createElement("div");
-
     d.className="tab";
-
     d.textContent=E.tab.value;
-
     t.appendChild(d);
-
   }
 
 }
@@ -357,41 +252,33 @@ function draw(){
 /* ---------- templates ---------- */
 
 document.querySelectorAll("[data-t]").forEach(function(b){
-
   b.addEventListener("click",function(){
-
-    load(
-      b.getAttribute("data-t")
-    );
-
+    load(b.getAttribute("data-t"));
   });
-
 });
 
 
 function load(k){
-
   var p=P[k];
-
   for(var k2 in p){
-
     E[k2].value=p[k2];
-
   }
-
   draw();
-
 }
 
 
 /* ---------- messages ---------- */
 
 function say(t){
-
   msg.textContent=t;
-
 }
+
+
 /* ---------- bake cqw-derived values as px ---------- */
+/* Chrome's SVG foreignObject doesn't resolve container query
+   units (cqw) reliably — it treats them as 0. Bake computed
+   styles as inline px before rasterizing so every browser
+   renders the clone identically. */
 
 function bakeLayoutPx(root){
   var PROPS=[
@@ -407,6 +294,7 @@ function bakeLayoutPx(root){
     '-webkit-text-stroke','-webkit-text-stroke-width'
   ];
   var saved=[];
+
   function walk(el){
     var cs;
     try{cs=getComputedStyle(el);}catch(e){return;}
@@ -416,13 +304,15 @@ function bakeLayoutPx(root){
       var v=cs.getPropertyValue(p);
       if(!v)continue;
       v=v.trim();
-      if(!v||v==='none'||v==='normal'||v==='auto'||v==='0px'||v==='0s'||v==='1')continue;
+      if(!v||v==='none'||v==='normal'||v==='auto'||v==='0px'||v==='1')continue;
       try{el.style.setProperty(p,v,'important');}catch(e){}
     }
     saved.push({el:el,style:orig});
     for(var j=0;j<el.children.length;j++)walk(el.children[j]);
   }
+
   walk(root);
+
   return function restore(){
     for(var i=0;i<saved.length;i++){
       var s=saved[i];
@@ -460,6 +350,15 @@ document.getElementById("save").addEventListener("click", async function () {
     }
 
     var hasPhoto = !!(pic && picture && !picture.hidden);
+
+    /* If there's no photo, temporarily detach the img so html-to-image
+       never sees an src-less <img> (which makes it reject with a raw Event). */
+    var picParent = null, picNext = null;
+    if (!hasPhoto && picture && picture.parentNode) {
+      picParent = picture.parentNode;
+      picNext = picture.nextSibling;
+      picture.remove();
+    }
 
     /* --- measure photo geometry, then hide it --- */
     if (hasPhoto) {
@@ -516,32 +415,26 @@ document.getElementById("save").addEventListener("click", async function () {
     var fr2 = flyer.getBoundingClientRect();
     var pixelRatio = W / fr2.width;
 
-    /* --- bake cqw values as px so foreignObject renders them the same
-           in every browser (Chrome's SVG foreignObject doesn't resolve
-           container query units reliably; it treats them as 0). --- */
+    /* --- bake cqw values as px for this render --- */
     restoreLayout = bakeLayoutPx(flyer);
     if (hasPhoto) picture.style.visibility = "hidden";
+    if (!hasPhoto && picture && picture.parentNode) picture.remove();
 
     var canvas;
     try {
       canvas = await htmlToImage.toCanvas(flyer, {
         pixelRatio: pixelRatio,
         backgroundColor: null,
-        skipFonts: true
+        skipFonts: true,
+        filter: function (node) {
+          return !(node && node.id === "oPic");
+        }
       });
     } finally {
       restoreLayout();
       restoreLayout = null;
       if (hasPhoto) picture.style.visibility = "hidden";
     }
-    canvas = await htmlToImage.toCanvas(flyer, {
-  pixelRatio: pixelRatio,
-  backgroundColor: null,
-  skipFonts: true,
-  filter: function (node) {
-    return !(node && node.id === "oPic");
-  }
-});
 
     /* --- composite the photo manually --- */
     if (photoGeom) {
@@ -610,6 +503,8 @@ document.getElementById("save").addEventListener("click", async function () {
   } finally {
     if (restoreLayout) { try { restoreLayout(); } catch (e) {} }
     if (picture) picture.style.visibility = savedVis;
+    if (picParent && picNext) picParent.insertBefore(picture, picNext);
+    else if (picParent) picParent.appendChild(picture);
     selectedElements.forEach(function (el) { el.classList.add("sel"); });
     button.disabled = false;
     button.textContent = originalText;
@@ -624,80 +519,33 @@ document.getElementById("file")
     "change",
     function(e){
 
-      var f=
-        e.target.files[0];
-
+      var f=e.target.files[0];
       if(!f)return;
 
-
-      var u=
-        URL.createObjectURL(f);
-
-      var im=
-        new Image();
-
+      var u=URL.createObjectURL(f);
+      var im=new Image();
 
       im.onload=function(){
 
-        var m=
-          Math.min(
-            1,
-            1200/
-            Math.max(
-              im.width,
-              im.height
-            )
-          );
+        var m=Math.min(1,1200/Math.max(im.width,im.height));
 
+        var c=document.createElement("canvas");
+        c.width=Math.round(im.width*m);
+        c.height=Math.round(im.height*m);
 
-        var c=
-          document.createElement(
-            "canvas"
-          );
+        c.getContext("2d").drawImage(im,0,0,c.width,c.height);
 
-
-        c.width=
-          Math.round(
-            im.width*m
-          );
-
-        c.height=
-          Math.round(
-            im.height*m
-          );
-
-
-        c.getContext("2d")
-          .drawImage(
-            im,
-            0,
-            0,
-            c.width,
-            c.height
-          );
-
-
-        pic=
-          c.toDataURL(
-            "image/jpeg",
-            .88
-          );
-
+        pic=c.toDataURL("image/jpeg",.88);
 
         URL.revokeObjectURL(u);
-
         draw();
 
       };
 
-
       im.onerror=function(){
-
         msg.textContent=
           "That file would not open as an image. Try a JPG or PNG.";
-
       };
-
 
       im.src=u;
 
@@ -711,29 +559,19 @@ document.getElementById("nopic")
   .addEventListener(
     "click",
     function(){
-
       pic="";
-
-      document.getElementById(
-        "file"
-      ).value="";
-
+      document.getElementById("file").value="";
       draw();
-
     }
   );
 
 
-E.tabs.addEventListener(
-  "change",
-  draw
-);
+E.tabs.addEventListener("change",draw);
 
 
 /* ---------- selected item system ---------- */
 
 var T={};
-
 var sel=null;
 
 var NAMES={
@@ -748,29 +586,20 @@ var NAMES={
 
 
 function g(i){
-
   return document.getElementById(i);
-
 }
 
 
 function applyT(id){
 
   var e=g(id);
-
   var t=T[id];
 
   if(!e || !t)return;
 
-
-  e.style.translate=
-    t.x+"cqw "+t.y+"cqw";
-
-  e.style.rotate=
-    t.r+"deg";
-
-  e.style.scale=
-    t.s;
+  e.style.translate=t.x+"cqw "+t.y+"cqw";
+  e.style.rotate=t.r+"deg";
+  e.style.scale=t.s;
 
 }
 
@@ -782,78 +611,42 @@ function select(id){
   document
     .querySelectorAll(".sel")
     .forEach(function(e){
-
       e.classList.remove("sel");
-
     });
-
 
   sel=id;
 
   var on=!!id;
 
-
-  [
-    "rot",
-    "siz",
-    "rst",
-    "del"
-  ].forEach(function(i){
-
+  ["rot","siz","rst","del"].forEach(function(i){
     g(i).disabled=!on;
-
   });
-
 
   if(on){
 
     var el=g(id);
 
     if(!el){
-
       sel=null;
-
       g("selName").textContent=
         "Nothing selected. Click something on the flyer.";
-
       return;
-
     }
-
 
     el.classList.add("sel");
 
-
     var t=T[id];
 
-
     if(!t){
-
-      T[id]={
-        x:0,
-        y:0,
-        r:0,
-        s:1
-      };
-
+      T[id]={x:0,y:0,r:0,s:1};
       t=T[id];
-
     }
 
-
-    g("rot").value=
-      t.r;
-
-    g("siz").value=
-      Math.round(
-        t.s*100
-      );
-
+    g("rot").value=t.r;
+    g("siz").value=Math.round(t.s*100);
 
     g("selName").textContent=
-      NAMES[id] ||
-      "Item";
-
+      NAMES[id] || "Item";
 
   }else{
 
@@ -867,275 +660,129 @@ function select(id){
 
 /* ---------- controls ---------- */
 
-g("rot").addEventListener(
-  "input",
-  function(){
-
-    if(sel){
-
-      T[sel].r=
-        +this.value;
-
-      applyT(sel);
-
-    }
-
+g("rot").addEventListener("input",function(){
+  if(sel){
+    T[sel].r=+this.value;
+    applyT(sel);
   }
-);
+});
 
 
-g("siz").addEventListener(
-  "input",
-  function(){
-
-    if(sel){
-
-      T[sel].s=
-        this.value/100;
-
-      applyT(sel);
-
-    }
-
+g("siz").addEventListener("input",function(){
+  if(sel){
+    T[sel].s=this.value/100;
+    applyT(sel);
   }
-);
+});
 
 
-g("rst").addEventListener(
-  "click",
-  function(){
-
-    if(sel){
-
-      T[sel]={
-        x:0,
-        y:0,
-        r:0,
-        s:1
-      };
-
-      applyT(sel);
-
-      select(sel);
-
-    }
-
+g("rst").addEventListener("click",function(){
+  if(sel){
+    T[sel]={x:0,y:0,r:0,s:1};
+    applyT(sel);
+    select(sel);
   }
-);
+});
 
 
 /* ---------- delete selected item ---------- */
 
-g("del").addEventListener(
-  "click",
-  function(){
+g("del").addEventListener("click",function(){
 
-    if(!sel)return;
+  if(!sel)return;
 
+  var el=g(sel);
+  if(!el)return;
 
-    var el=g(sel);
-
-    if(!el)return;
-
-
-    /*
-      If the selected item is the picture,
-      use the normal picture removal behavior.
-    */
-
-    if(sel==="oPic"){
-
-      pic="";
-
-      g("file").value="";
-
-      T[sel]={
-        x:0,
-        y:0,
-        r:0,
-        s:1
-      };
-
-      select(null);
-
-      draw();
-
-      return;
-
-    }
-
-
-    /*
-      Other flyer elements are removed from
-      the current flyer.
-    */
-
-    el.remove();
-
-    delete T[sel];
-
+  if(sel==="oPic"){
+    pic="";
+    g("file").value="";
+    T[sel]={x:0,y:0,r:0,s:1};
     select(null);
-
+    draw();
+    return;
   }
-);
+
+  el.remove();
+  delete T[sel];
+  select(null);
+
+});
 
 
 /* ---------- draggable items ---------- */
 
 var dr=null;
 
-
 function makeDraggable(el){
 
   if(!el)return;
 
+  el.setAttribute("data-d","1");
+  el.style.touchAction="none";
+  el.style.userSelect="none";
+  el.style.webkitUserSelect="none";
 
-  el.setAttribute(
-    "data-d",
-    "1"
-  );
+  el.addEventListener("pointerdown",function(e){
 
+    var id=el.id;
 
-  el.style.touchAction=
-    "none";
-
-  el.style.userSelect=
-    "none";
-
-  el.style.webkitUserSelect=
-    "none";
-
-
-  el.addEventListener(
-    "pointerdown",
-    function(e){
-
-      var id=el.id;
-
-      if(!T[id]){
-
-        T[id]={
-          x:0,
-          y:0,
-          r:0,
-          s:1
-        };
-
-      }
-
-
-      select(id);
-
-
-      var t=T[id];
-
-
-      dr={
-        el:el,
-        id:id,
-        pointerId:e.pointerId,
-        px:e.clientX,
-        py:e.clientY,
-        x:t.x,
-        y:t.y
-      };
-
-
-      try{
-
-        el.setPointerCapture(
-          e.pointerId
-        );
-
-      }catch(x){}
-
-
-      e.preventDefault();
-
-      e.stopPropagation();
-
+    if(!T[id]){
+      T[id]={x:0,y:0,r:0,s:1};
     }
-  );
 
+    select(id);
 
-  el.addEventListener(
-    "pointermove",
-    function(e){
+    var t=T[id];
 
-      if(
-        !dr ||
-        dr.el!==el ||
-        dr.pointerId!==e.pointerId
-      ){
+    dr={
+      el:el,
+      id:id,
+      pointerId:e.pointerId,
+      px:e.clientX,
+      py:e.clientY,
+      x:t.x,
+      y:t.y
+    };
 
-        return;
+    try{
+      el.setPointerCapture(e.pointerId);
+    }catch(x){}
 
-      }
+    e.preventDefault();
+    e.stopPropagation();
 
+  });
 
-      var u=
-        fl.getBoundingClientRect()
-          .width/100;
+  el.addEventListener("pointermove",function(e){
 
-
-      var t=
-        T[dr.id];
-
-
-      t.x=
-        dr.x+
-        (e.clientX-dr.px)/u;
-
-      t.y=
-        dr.y+
-        (e.clientY-dr.py)/u;
-
-
-      applyT(
-        dr.id
-      );
-
-
-      e.preventDefault();
-
+    if(!dr || dr.el!==el || dr.pointerId!==e.pointerId){
+      return;
     }
-  );
 
+    var u=fl.getBoundingClientRect().width/100;
+    var t=T[dr.id];
 
-  el.addEventListener(
-    "pointerup",
-    function(e){
+    t.x=dr.x+(e.clientX-dr.px)/u;
+    t.y=dr.y+(e.clientY-dr.py)/u;
 
-      if(
-        dr &&
-        dr.el===el &&
-        dr.pointerId===e.pointerId
-      ){
+    applyT(dr.id);
 
-        dr=null;
+    e.preventDefault();
 
-      }
+  });
 
+  el.addEventListener("pointerup",function(e){
+    if(dr && dr.el===el && dr.pointerId===e.pointerId){
+      dr=null;
     }
-  );
+  });
 
-
-  el.addEventListener(
-    "pointercancel",
-    function(e){
-
-      if(
-        dr &&
-        dr.el===el &&
-        dr.pointerId===e.pointerId
-      ){
-
-        dr=null;
-
-      }
-
+  el.addEventListener("pointercancel",function(e){
+    if(dr && dr.el===el && dr.pointerId===e.pointerId){
+      dr=null;
     }
-  );
+  });
 
 }
 
@@ -1149,8 +796,7 @@ fl.addEventListener("touchstart", function(e){
     var t1 = e.touches[1];
     var dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
     pinchStart = {dist: dist, el: null};
-    
-    /* find which item is being pinched */
+
     var midX = (t0.clientX + t1.clientX) / 2;
     var midY = (t0.clientY + t1.clientY) / 2;
     var elem = document.elementFromPoint(midX, midY);
@@ -1167,13 +813,13 @@ fl.addEventListener("touchmove", function(e){
     var t1 = e.touches[1];
     var dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
     var ratio = dist / pinchStart.dist;
-    
+
     var id = pinchStart.id;
     if(!T[id]) T[id] = {x:0, y:0, r:0, s:1};
-    
+
     T[id].s = Math.max(0.5, Math.min(3, T[id].s * ratio));
     applyT(id);
-    
+
     pinchStart.dist = dist;
     e.preventDefault();
   }
@@ -1187,110 +833,57 @@ fl.addEventListener("touchend", function(e){
 
 /* ---------- built-in flyer elements ---------- */
 
-Object.keys(NAMES)
-  .forEach(function(id){
+Object.keys(NAMES).forEach(function(id){
 
-    var el=g(id);
+  var el=g(id);
+  if(!el)return;
 
-    if(!el)return;
+  el.setAttribute("data-d","1");
 
+  T[id]={x:0,y:0,r:0,s:1};
 
-    el.setAttribute(
-      "data-d",
-      "1"
-    );
+  makeDraggable(el);
 
-
-    T[id]={
-      x:0,
-      y:0,
-      r:0,
-      s:1
-    };
-
-
-    makeDraggable(el);
-
-  });
+});
 
 
 /* ---------- clicking the flyer ---------- */
 
-fl.addEventListener(
-  "pointerdown",
-  function(e){
+fl.addEventListener("pointerdown",function(e){
 
-    var target=e.target;
+  var target=e.target;
+  var el=null;
 
-    var el=null;
-
-
-    if(
-      target &&
-      target.closest
-    ){
-
-      el=
-        target.closest(
-          "[data-d]"
-        );
-
-    }
-
-
-    if(
-      !el ||
-      !fl.contains(el)
-    ){
-
-      select(null);
-
-    }
-
+  if(target && target.closest){
+    el=target.closest("[data-d]");
   }
-);
+
+  if(!el || !fl.contains(el)){
+    select(null);
+  }
+
+});
 
 
 /* ---------- collapsible sections ---------- */
 
-var mq=
-  window.matchMedia(
-    "(min-width:661px)"
-  );
-
-var secs=
-  document.querySelectorAll(
-    "details.sec"
-  );
-
+var mq=window.matchMedia("(min-width:661px)");
+var secs=document.querySelectorAll("details.sec");
 
 function syncSec(){
 
-  for(
-    var n=0;
-    n<secs.length;
-    n++
-  ){
+  for(var n=0;n<secs.length;n++){
 
     var d=secs[n];
 
-
     if(mq.matches){
-
       d.dataset.locked="1";
-
       d.open=true;
-
     }else{
-
       delete d.dataset.locked;
-
       if(!d.dataset.user){
-
         d.open=false;
-
       }
-
     }
 
   }
@@ -1298,52 +891,28 @@ function syncSec(){
 }
 
 
-for(
-  var n=0;
-  n<secs.length;
-  n++
-)(function(d){
+for(var n=0;n<secs.length;n++)(function(d){
 
-  d.addEventListener(
-    "toggle",
-    function(){
+  d.addEventListener("toggle",function(){
 
-      if(
-        d.dataset.locked
-      ){
-
-        d.open=true;
-
-        return;
-
-      }
-
-
-      if(
-        !mq.matches
-      ){
-
-        d.dataset.user="1";
-
-      }
-
+    if(d.dataset.locked){
+      d.open=true;
+      return;
     }
-  );
+
+    if(!mq.matches){
+      d.dataset.user="1";
+    }
+
+  });
 
 })(secs[n]);
 
 
 function mqChange(){
 
-  for(
-    var n=0;
-    n<secs.length;
-    n++
-  ){
-
-    delete secs[n]
-      .dataset.user;
-
+  for(var n=0;n<secs.length;n++){
+    delete secs[n].dataset.user;
   }
 
   syncSec();
@@ -1351,21 +920,10 @@ function mqChange(){
 }
 
 
-if(
-  mq.addEventListener
-){
-
-  mq.addEventListener(
-    "change",
-    mqChange
-  );
-
+if(mq.addEventListener){
+  mq.addEventListener("change",mqChange);
 }else{
-
-  mq.addListener(
-    mqChange
-  );
-
+  mq.addListener(mqChange);
 }
 
 
@@ -1374,21 +932,12 @@ syncSec();
 
 /* ---------- mobile Edit button ---------- */
 
-document.getElementById(
-  "editJump"
-).addEventListener(
-  "click",
-  function(){
-
-    document
-      .querySelector(".ctl")
-      .scrollIntoView({
-        behavior:"smooth",
-        block:"start"
-      });
-
-  }
-);
+document.getElementById("editJump").addEventListener("click",function(){
+  document.querySelector(".ctl").scrollIntoView({
+    behavior:"smooth",
+    block:"start"
+  });
+});
 
 
 /* ---------- start ---------- */
