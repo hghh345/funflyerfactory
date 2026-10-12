@@ -22,7 +22,7 @@
   }
 }
 
-:root[data-theme="dark] {
+:root[data-theme="dark"] {
   --desk:#1d3552;
   --panel:#3b3a35;
   --ink:#f2f0e6;
