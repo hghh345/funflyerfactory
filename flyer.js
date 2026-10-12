@@ -803,7 +803,7 @@ tabNodes.forEach(function (tab) {
   tab.style.removeProperty("height");
   tab.style.setProperty("flex", "1", "important");
   tab.style.setProperty("min-width", "0", "important");
-  tab.style.setProperty("padding", "1px", "important");
+  tab.style.setProperty("padding", "4px", "important");
   tab.style.setProperty("white-space", "nowrap", "important");
   tab.style.setProperty("line-height", "1", "important");
   tab.style.setProperty("overflow", "hidden", "important");
