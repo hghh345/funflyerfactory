@@ -459,7 +459,14 @@ document.getElementById("save").addEventListener("click", async function () {
       selectedElements.push(el);
       el.classList.remove("sel");
     });
-
+    
+console.log("Photo export check:", {
+  src: picture.src.substring(0, 50),
+  complete: picture.complete,
+  naturalWidth: picture.naturalWidth,
+  naturalHeight: picture.naturalHeight,
+  hidden: picture.hidden
+});
   
 var blob = await htmlToImage.toBlob(flyer, {
   pixelRatio: 2,
