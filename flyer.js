@@ -391,6 +391,48 @@ function say(t){
   msg.textContent=t;
 
 }
+/* ---------- bake cqw-derived values as px ---------- */
+
+function bakeLayoutPx(root){
+  var PROPS=[
+    'font-size','letter-spacing','line-height','word-spacing',
+    'padding-top','padding-right','padding-bottom','padding-left',
+    'margin-top','margin-right','margin-bottom','margin-left',
+    'border-top-width','border-right-width','border-bottom-width','border-left-width',
+    'top','right','bottom','left',
+    'outline-width','outline-offset',
+    'text-shadow','box-shadow','filter',
+    'transform','translate','rotate','scale',
+    'width','height','max-width','max-height','min-width','min-height',
+    '-webkit-text-stroke','-webkit-text-stroke-width'
+  ];
+  var saved=[];
+  function walk(el){
+    var cs;
+    try{cs=getComputedStyle(el);}catch(e){return;}
+    var orig=el.getAttribute('style')||'';
+    for(var i=0;i<PROPS.length;i++){
+      var p=PROPS[i];
+      var v=cs.getPropertyValue(p);
+      if(!v)continue;
+      v=v.trim();
+      if(!v||v==='none'||v==='normal'||v==='auto'||v==='0px'||v==='0s'||v==='1')continue;
+      try{el.style.setProperty(p,v,'important');}catch(e){}
+    }
+    saved.push({el:el,style:orig});
+    for(var j=0;j<el.children.length;j++)walk(el.children[j]);
+  }
+  walk(root);
+  return function restore(){
+    for(var i=0;i<saved.length;i++){
+      var s=saved[i];
+      if(s.style)s.el.setAttribute('style',s.style);
+      else s.el.removeAttribute('style');
+    }
+  };
+}
+
+
 /* ---------- save / export PNG ---------- */
 
 document.getElementById("save").addEventListener("click", async function () {
@@ -399,15 +441,14 @@ document.getElementById("save").addEventListener("click", async function () {
   var flyer = document.getElementById("fl");
   var picture = document.getElementById("oPic");
   var selectedElements = [];
+  var restoreLayout = null;
+  var savedVis = "";
+  var photoGeom = null;
 
   if (button.disabled) return;
   button.disabled = true;
   button.textContent = "Making your flyer...";
   say("Preparing your flyer...");
-
-  var hasPhoto = !!(pic && picture && !picture.hidden);
-  var savedVis = "";
-  var photoGeom = null;
 
   try {
     if (typeof htmlToImage === "undefined" || typeof htmlToImage.toCanvas !== "function") {
@@ -418,13 +459,14 @@ document.getElementById("save").addEventListener("click", async function () {
       try { await document.fonts.ready; } catch (e) {}
     }
 
-    // --- Measure photo geometry BEFORE hiding it ---
+    var hasPhoto = !!(pic && picture && !picture.hidden);
+
+    /* --- measure photo geometry, then hide it --- */
     if (hasPhoto) {
       try { await picture.decode(); } catch (e) {}
 
       savedVis = picture.style.visibility;
 
-      // Temporarily strip transforms so we measure the layout box
       var sT = picture.style.translate;
       var sR = picture.style.rotate;
       var sS = picture.style.scale;
@@ -437,33 +479,30 @@ document.getElementById("save").addEventListener("click", async function () {
       void picture.offsetWidth;
 
       var pr = picture.getBoundingClientRect();
-      var fr = flyer.getBoundingClientRect();
+      var fr0 = flyer.getBoundingClientRect();
       var t = T["oPic"] || { x: 0, y: 0, r: 0, s: 1 };
 
       photoGeom = {
-        left: pr.left - fr.left,
-        top: pr.top - fr.top,
+        left: pr.left - fr0.left,
+        top: pr.top - fr0.top,
         w: pr.width,
         h: pr.height,
-        flyerW: fr.width,
-        flyerH: fr.height,
+        flyerW: fr0.width,
+        flyerH: fr0.height,
         tx: t.x || 0,
         ty: t.y || 0,
         tr: t.r || 0,
         ts: t.s || 1
       };
 
-      // Restore transforms
       picture.style.translate = sT;
       picture.style.rotate = sR;
       picture.style.scale = sS;
       picture.style.transform = sF;
-
-      // Hide photo so html-to-image never sees it
       picture.style.visibility = "hidden";
     }
 
-    // Clear selection outlines
+    /* --- clear selection outlines --- */
     flyer.querySelectorAll(".sel").forEach(function (el) {
       selectedElements.push(el);
       el.classList.remove("sel");
@@ -474,17 +513,29 @@ document.getElementById("save").addEventListener("click", async function () {
     var W = size[0];
     var H = size[1];
 
-    // Raster everything EXCEPT the photo
     var fr2 = flyer.getBoundingClientRect();
     var pixelRatio = W / fr2.width;
 
-    var canvas = await htmlToImage.toCanvas(flyer, {
-      pixelRatio: pixelRatio,
-      backgroundColor: null,
-      skipFonts: true
-    });
+    /* --- bake cqw values as px so foreignObject renders them the same
+           in every browser (Chrome's SVG foreignObject doesn't resolve
+           container query units reliably; it treats them as 0). --- */
+    restoreLayout = bakeLayoutPx(flyer);
+    if (hasPhoto) picture.style.visibility = "hidden";
 
-    // --- Composite the photo manually ---
+    var canvas;
+    try {
+      canvas = await htmlToImage.toCanvas(flyer, {
+        pixelRatio: pixelRatio,
+        backgroundColor: null,
+        skipFonts: true
+      });
+    } finally {
+      restoreLayout();
+      restoreLayout = null;
+      if (hasPhoto) picture.style.visibility = "hidden";
+    }
+
+    /* --- composite the photo manually --- */
     if (photoGeom) {
       await new Promise(function (resolve, reject) {
         var img = new Image();
@@ -498,11 +549,9 @@ document.getElementById("save").addEventListener("click", async function () {
             var w = photoGeom.w * sx;
             var h = photoGeom.h * sy;
 
-            // User translate is in cqw = % of flyer width
             var ox = photoGeom.tx * (photoGeom.flyerW / 100) * sx;
             var oy = photoGeom.ty * (photoGeom.flyerW / 100) * sy;
 
-            // Base -2deg from .pic CSS, plus user rotation
             var rot = (-2 + photoGeom.tr) * Math.PI / 180;
             var s = photoGeom.ts;
 
@@ -516,7 +565,7 @@ document.getElementById("save").addEventListener("click", async function () {
             resolve();
           } catch (e) { reject(e); }
         };
-        img.onerror = function () { reject(new Error("Photo couldn't be loaded for compositing.")); };
+        img.onerror = function () { reject(new Error("Photo couldn't be loaded.")); };
         img.src = pic;
       });
     }
@@ -536,7 +585,6 @@ document.getElementById("save").addEventListener("click", async function () {
     link.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
 
-    // Preview too — helps on iOS where downloads are weird
     var outimg = document.getElementById("outimg");
     if (outimg) {
       if (outimg.dataset.url) URL.revokeObjectURL(outimg.dataset.url);
@@ -552,6 +600,7 @@ document.getElementById("save").addEventListener("click", async function () {
     console.error("Flyer export failed:", err);
     say("Couldn't make the PNG. " + (err && err.message ? err.message : ""));
   } finally {
+    if (restoreLayout) { try { restoreLayout(); } catch (e) {} }
     if (picture) picture.style.visibility = savedVis;
     selectedElements.forEach(function (el) { el.classList.add("sel"); });
     button.disabled = false;
