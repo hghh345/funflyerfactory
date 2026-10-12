@@ -394,4 +394,5 @@ tabNodes.forEach(function (tab) {
   if (mq.addEventListener) mq.addEventListener("change", mqChange); else mq.addListener(mqChange);
 
   resetTransforms(); select(null); load("show");
-}();
+  });
+
