@@ -853,6 +853,29 @@ async function generatePNG() {
         imageTimeout: 15000
       });
 
+/* Apply black and white to the final exported image. */
+if (clone.classList.contains("bw")) {
+  var bwContext = canvas.getContext("2d");
+  var pixels = bwContext.getImageData(
+    0, 0, canvas.width, canvas.height
+  );
+  var data = pixels.data;
+
+  for (var i = 0; i < data.length; i += 4) {
+    var gray = Math.round(
+      data[i] * 0.299 +
+      data[i + 1] * 0.587 +
+      data[i + 2] * 0.114
+    );
+
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+  }
+
+  bwContext.putImageData(pixels, 0, 0);
+}
+
       var ratio = format.w / format.h;
 
       if (Math.abs(canvas.width / canvas.height - ratio) > 0.01) {
