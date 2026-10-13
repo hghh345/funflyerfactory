@@ -787,27 +787,7 @@ function prepareCloneForCanvas(clone) {
 
   /* Fix tear-off tabs: keep text upright in the tabs,
      give it room to wrap, and prevent clipping. */
-  var tabNodes = clone.querySelectorAll(".tab");
-
  
-tabNodes.forEach(function (tab) {
-  var width = (EXPORT[Number(E.sz.value)] || EXPORT[0]).w;
-  tab.style.setProperty("writing-mode", "horizontal-rl", "important");
-  tab.style.setProperty("-webkit-writing-mode", "horizontal-rl", "important");
-  tab.style.setProperty("text-orientation", "mixed", "important");
-  tab.style.setProperty("transform", "rotate(180deg)", "important");
-  tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
-  tab.style.removeProperty("width");
-  tab.style.removeProperty("height");
-  tab.style.setProperty("flex", "1", "important");
-  tab.style.setProperty("width", "auto", "important");
-  tab.style.setProperty("padding", "4px", "important");
-  tab.style.setProperty("white-space", "nowrap", "important");
-  tab.style.setProperty("line-height", "1", "important");
-  tab.style.setProperty("overflow", "visible", "important");
-  tab.style.setProperty("font-size", (width * 0.027) + "px", "important");
-});
-}
 
 async function generatePNG() {
     busy = true;
