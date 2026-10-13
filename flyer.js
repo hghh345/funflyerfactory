@@ -802,11 +802,11 @@ tabNodes.forEach(function (tab) {
   tab.style.removeProperty("width");
   tab.style.removeProperty("height");
   tab.style.setProperty("flex", "1", "important");
-  tab.style.setProperty("min-width", "0", "important");
+  tab.style.setProperty("width", "auto", "important");
   tab.style.setProperty("padding", "4px", "important");
   tab.style.setProperty("white-space", "nowrap", "important");
   tab.style.setProperty("line-height", "1", "important");
-  tab.style.setProperty("overflow", "hidden", "important");
+  tab.style.setProperty("overflow", "visible", "important");
   tab.style.setProperty("font-size", (width * 0.027) + "px", "important");
 });
 }
