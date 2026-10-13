@@ -1,5 +1,3 @@
-
-
 (function () {
 
 "use strict";
@@ -8,7 +6,7 @@ var P = {
 
   show: {
 
-    head: "BASEMENT SHOW!!!", burst: "ALL AGES",
+    head: "BASEMENT SHOW!!!", burst: "",
 
     sub: "3 bands. $5. Bring a friend.",
 
@@ -24,7 +22,7 @@ var P = {
 
   cat: {
 
-    head: "HAVE YOU SEEN MITTENS?", burst: "REWARD",
+    head: "HAVE YOU SEEN MITTENS?", burst: "",
 
     sub: "Orange cat. Very chatty.",
 
@@ -40,7 +38,7 @@ var P = {
 
   sale: {
 
-    head: "HUGE YARD SALE", burst: "CHEAP!",
+    head: "HUGE YARD SALE", burst: "",
 
     sub: "Everything must go",
 
@@ -56,7 +54,7 @@ var P = {
 
   party: {
 
-    head: "DANCE PARTY", burst: "FREE ENTRY",
+    head: "DANCE PARTY", burst: "",
 
     sub: "Wear something shiny",
 
@@ -170,8 +168,6 @@ var NAMES = {
 
   oWhen: "When and where",
 
-  oBurst: "Sticker",
-
   oTabs: "Tear-off tabs"
 
 };
@@ -179,8 +175,6 @@ var NAMES = {
 var INPUT_TO_ITEM = {
 
   head: "oHead",
-
-  burst: "oBurst",
 
   sub: "oSub",
 
@@ -221,32 +215,6 @@ function applyT(id) {
   el.style.scale = String(t.s);
 
 }
-
-var starPoints = [];
-
-for (var i = 0; i < 32; i++) {
-
-  var a = i * Math.PI / 16;
-
-  var r = i % 2 ? 38 : 50;
-
-  starPoints.push(
-
-    (50 + r * Math.sin(a)).toFixed(1) + "% " +
-
-    (50 - r * Math.cos(a)).toFixed(1) + "%"
-
-  );
-
-}
-
-fl.style.setProperty(
-
-  "--star",
-
-  "polygon(" + starPoints.join(",") + ")"
-
-);
 
 function draw() {
 
@@ -402,12 +370,6 @@ function draw() {
 
   g("oDg").textContent = E.dg.value;
 
-  g("oBurst").textContent = E.burst.value;
-
-  g("oBurst").style.display =
-
-    E.burst.value ? "flex" : "none";
-
   var tabs = g("oTabs");
 
   tabs.style.display = E.tabs.checked ? "flex" : "none";
@@ -425,7 +387,9 @@ function draw() {
     tab.textContent = E.tab.value;
 
     var tabTextLength = (E.tab.value || "").trim().length;
+
     var tabFontSize = Math.min(2.7, 18 / Math.max(1, tabTextLength * 0.55));
+
     tab.style.fontSize = tabFontSize + "cqw";
 
     tabs.appendChild(tab);
@@ -451,16 +415,6 @@ function draw() {
         deleted[id] || !E.sub.value
 
           ? "none" : "inline-block";
-
-    }
-
-    if (id === "oBurst") {
-
-      el.style.display =
-
-        deleted[id] || !E.burst.value
-
-          ? "none" : "flex";
 
     }
 
@@ -952,14 +906,6 @@ async function waitForImages(root) {
 
 }
 
-/*
-
- * Export-only fixes for effects html2canvas cannot reliably reproduce.
-
- * The live flyer preview is left unchanged.
-
- */
-
 function prepareCloneForCanvas(clone) {
 
 var headline = clone.querySelector("#oHead");
@@ -993,8 +939,6 @@ var palettes = {
   ]
 
 };
-
-/* Preserve gradient word-art colors in exported PNGs. */
 
 if (headline && palettes[styleIndex]) {
 
@@ -1092,125 +1036,32 @@ if (headline && palettes[styleIndex]) {
 
 }
 
-/* Make the burst shape export reliably at the actual mobile/desktop size. */
-var burst = clone.querySelector("#oBurst");
-
-if (burst && burst.textContent.trim()) {
-  var burstText = burst.textContent.trim();
-  var burstStyle = window.getComputedStyle(burst);
-  var burstRect = burst.getBoundingClientRect();
-  var burstWidth = Math.max(1, burstRect.width || parseFloat(burstStyle.width) || 120);
-  var burstHeight = Math.max(1, burstRect.height || parseFloat(burstStyle.height) || 120);
-  var accent = getComputedStyle(fl).getPropertyValue("--ac").trim() || "#ff1493";
-  var points = [];
-
-  for (var i = 0; i < 32; i++) {
-    var angle = i * Math.PI / 16;
-    var radius = i % 2 ? 38 : 50;
-    points.push(
-      (50 + radius * Math.sin(angle)).toFixed(1) + "," +
-      (50 - radius * Math.cos(angle)).toFixed(1)
-    );
-  }
-
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">' +
-    '<polygon points="' + points.join(" ") + '" fill="' + accent + '"/></svg>';
-  var shape = document.createElement("img");
-  shape.alt = "";
-  shape.setAttribute("aria-hidden", "true");
-  shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  shape.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;object-fit:fill;";
-
-  var label = document.createElement("span");
-  label.textContent = burstText;
-  label.style.cssText = "position:absolute;left:0;top:0;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;padding:8%;text-align:center;overflow-wrap:anywhere;word-break:normal;";
-  label.style.fontFamily = burstStyle.fontFamily;
-  label.style.fontSize = burstStyle.fontSize;
-  label.style.fontWeight = burstStyle.fontWeight;
-  label.style.fontStyle = burstStyle.fontStyle;
-  label.style.lineHeight = burstStyle.lineHeight;
-  label.style.letterSpacing = burstStyle.letterSpacing;
-  label.style.textTransform = burstStyle.textTransform;
-  label.style.color = burstStyle.color;
-  label.style.textShadow = burstStyle.textShadow;
-  label.style.webkitTextStroke = burstStyle.webkitTextStroke || "";
-
-  burst.textContent = "";
-  burst.appendChild(shape);
-  burst.appendChild(label);
-  burst.style.setProperty("position", "absolute", "important");
-  burst.style.setProperty("width", burstWidth + "px", "important");
-  burst.style.setProperty("height", burstHeight + "px", "important");
-  burst.style.setProperty("min-width", burstWidth + "px", "important");
-  burst.style.setProperty("min-height", burstHeight + "px", "important");
-  burst.style.setProperty("box-sizing", "border-box", "important");
-  burst.style.setProperty("background", "transparent", "important");
-  burst.style.setProperty("clip-path", "none", "important");
-  burst.style.setProperty("-webkit-clip-path", "none", "important");
-  burst.style.setProperty("overflow", "visible", "important");
-}
-
-/* Use real PNG tiles for patterns: html2canvas can drop CSS gradients. */
-function makePatternTile(kind, background, accent) {
-  var tile = document.createElement("canvas");
-  var ctx = tile.getContext("2d");
-  var size = kind === "p1" ? 64 : (kind === "p2" ? 30 : 24);
-  tile.width = size;
-  tile.height = size;
-  ctx.fillStyle = background;
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = accent;
-
-  if (kind === "p1") {
-    ctx.fillRect(0, 0, 32, 32);
-    ctx.fillRect(32, 32, 32, 32);
-  } else if (kind === "p2") {
-    ctx.beginPath();
-    ctx.arc(15, 15, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (kind === "p3") {
-    ctx.fillRect(0, 12, size, 12);
-  }
-
-  return tile.toDataURL("image/png");
-}
-
-var flyerStyle = getComputedStyle(fl);
-var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
-var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
-var patternClass = ["p1", "p2", "p3"].find(function (name) {
-  return clone.classList.contains(name);
-});
-
-clone.style.setProperty("background-color", exportBg, "important");
-clone.style.setProperty("background-image", "none", "important");
-clone.style.setProperty("background-repeat", "repeat", "important");
-clone.style.setProperty("background-position", "0 0", "important");
-clone.style.setProperty("background-size", "auto", "important");
-
-if (patternClass) {
-  var patternURL = makePatternTile(patternClass, exportBg, exportAccent);
-  var patternSize = patternClass === "p1" ? "64px 64px" : (patternClass === "p2" ? "30px 30px" : "24px 24px");
-  clone.style.setProperty("background-image", 'url("' + patternURL + '")', "important");
-  clone.style.setProperty("background-size", patternSize, "important");
-  clone.style.setProperty("background-repeat", "repeat", "important");
-  clone.style.setProperty("background-position", "0 0", "important");
-}
-
-/* Match the preview tab typography and fit the full label in each tab. */
 var tabText = (E.tab.value || "").trim();
+
 var tabFontSize = Math.min(2.7, 18 / Math.max(1, tabText.length * 0.55));
+
 clone.querySelectorAll(".tab").forEach(function (tab) {
+
   tab.style.setProperty("font-size", tabFontSize + "cqw", "important");
+
   tab.style.setProperty("white-space", "nowrap", "important");
+
   tab.style.setProperty("overflow", "hidden", "important");
+
   tab.style.setProperty("writing-mode", "vertical-rl", "important");
+
   tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
+
   tab.style.setProperty("text-orientation", "mixed", "important");
+
   tab.style.setProperty("transform", "rotate(180deg)", "important");
+
   tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
+
   tab.style.setProperty("box-sizing", "border-box", "important");
+
 });
+
 }
 
 async function generatePNG() {
@@ -1361,8 +1212,6 @@ async function generatePNG() {
 
     }
 
-/* Apply black and white to the final exported image. */
-
 if (clone.classList.contains("bw")) {
 
 var bwContext = canvas.getContext("2d");
@@ -1398,7 +1247,6 @@ for (var i = 0; i < data.length; i += 4) {
 bwContext.putImageData(pixels, 0, 0);
 
 }
-
 
     lastPNG = canvas.toDataURL("image/png");
 
@@ -1581,8 +1429,6 @@ g("print").addEventListener("click", function () {
   }
 
 });
-
-/* Keep desktop sections open; let mobile users collapse them. */
 
 var mq = window.matchMedia("(min-width:661px)");
 
