@@ -1092,170 +1092,109 @@ if (headline && palettes[styleIndex]) {
 
 }
 
-/* Make the burst shape export more reliably. */
-
+/* Make the burst shape export reliably at the actual mobile/desktop size. */
 var burst = clone.querySelector("#oBurst");
 
 if (burst && burst.textContent.trim()) {
-
-  var accent = getComputedStyle(fl)
-
-    .getPropertyValue("--ac").trim() || "#ff1493";
-
+  var burstText = burst.textContent.trim();
+  var burstStyle = window.getComputedStyle(burst);
+  var burstRect = burst.getBoundingClientRect();
+  var burstWidth = Math.max(1, burstRect.width || parseFloat(burstStyle.width) || 120);
+  var burstHeight = Math.max(1, burstRect.height || parseFloat(burstStyle.height) || 120);
+  var accent = getComputedStyle(fl).getPropertyValue("--ac").trim() || "#ff1493";
   var points = [];
 
   for (var i = 0; i < 32; i++) {
-
     var angle = i * Math.PI / 16;
-
     var radius = i % 2 ? 38 : 50;
-
     points.push(
-
       (50 + radius * Math.sin(angle)).toFixed(1) + "," +
-
       (50 - radius * Math.cos(angle)).toFixed(1)
-
     );
-
   }
 
-  var svg =
-
-    '<svg xmlns="http\://www.w3.org/2000/svg" ' +
-
-    'width="100" height="100" viewBox="0 0 100 100">' +
-
-    '<polygon points="' + points.join(" ") +
-
-    '" fill="' + accent + '"/></svg>';
-
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">' +
+    '<polygon points="' + points.join(" ") + '" fill="' + accent + '"/></svg>';
   var shape = document.createElement("img");
-
   shape.alt = "";
-
   shape.setAttribute("aria-hidden", "true");
-
   shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-
-  shape.style.cssText =
-
-    "position:absolute;inset:0;width:100%;height:100%;" +
-
-    "display:block;z-index:0;pointer-events:none;";
+  shape.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;object-fit:fill;";
 
   var label = document.createElement("span");
-
-  label.textContent = burst.textContent;
-
-  label.style.cssText =
-
-    "position:absolute;inset:0;z-index:1;" +
-
-    "display:flex;align-items:center;justify-content:center;" +
-
-    "width:100%;height:100%;box-sizing:border-box;" +
-
-    "padding:8%;text-align:center;";
+  label.textContent = burstText;
+  label.style.cssText = "position:absolute;left:0;top:0;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;padding:8%;text-align:center;overflow-wrap:anywhere;word-break:normal;";
+  label.style.fontFamily = burstStyle.fontFamily;
+  label.style.fontSize = burstStyle.fontSize;
+  label.style.fontWeight = burstStyle.fontWeight;
+  label.style.fontStyle = burstStyle.fontStyle;
+  label.style.lineHeight = burstStyle.lineHeight;
+  label.style.letterSpacing = burstStyle.letterSpacing;
+  label.style.textTransform = burstStyle.textTransform;
+  label.style.color = burstStyle.color;
+  label.style.textShadow = burstStyle.textShadow;
+  label.style.webkitTextStroke = burstStyle.webkitTextStroke || "";
 
   burst.textContent = "";
-
   burst.appendChild(shape);
-
   burst.appendChild(label);
-
+  burst.style.setProperty("position", "absolute", "important");
+  burst.style.setProperty("width", burstWidth + "px", "important");
+  burst.style.setProperty("height", burstHeight + "px", "important");
+  burst.style.setProperty("min-width", burstWidth + "px", "important");
+  burst.style.setProperty("min-height", burstHeight + "px", "important");
+  burst.style.setProperty("box-sizing", "border-box", "important");
   burst.style.setProperty("background", "transparent", "important");
-
   burst.style.setProperty("clip-path", "none", "important");
-
   burst.style.setProperty("-webkit-clip-path", "none", "important");
-
   burst.style.setProperty("overflow", "visible", "important");
-
 }
 
-/* Rebuild flyer patterns with pixel-based sizing for export. */
+/* Use real PNG tiles for patterns: html2canvas can drop CSS gradients. */
+function makePatternTile(kind, background, accent) {
+  var tile = document.createElement("canvas");
+  var ctx = tile.getContext("2d");
+  var size = kind === "p1" ? 64 : (kind === "p2" ? 30 : 24);
+  tile.width = size;
+  tile.height = size;
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = accent;
 
-/* Rebuild flyer patterns for export. */
+  if (kind === "p1") {
+    ctx.fillRect(0, 0, 32, 32);
+    ctx.fillRect(32, 32, 32, 32);
+  } else if (kind === "p2") {
+    ctx.beginPath();
+    ctx.arc(15, 15, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (kind === "p3") {
+    ctx.fillRect(0, 12, size, 12);
+  }
+
+  return tile.toDataURL("image/png");
+}
 
 var flyerStyle = getComputedStyle(fl);
-
 var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
-
 var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
-
 var patternClass = ["p1", "p2", "p3"].find(function (name) {
-
   return clone.classList.contains(name);
-
 });
 
 clone.style.setProperty("background-color", exportBg, "important");
-
 clone.style.setProperty("background-image", "none", "important");
-
 clone.style.setProperty("background-repeat", "repeat", "important");
-
 clone.style.setProperty("background-position", "0 0", "important");
+clone.style.setProperty("background-size", "auto", "important");
 
-if (patternClass === "p1") {
-
-  /* Checkerboard */
-
-  clone.style.setProperty(
-
-    "background-image",
-
-    "linear-gradient(45deg, " + exportAccent +
-
-      " 25%, transparent 25%, transparent 75%, " + exportAccent +
-
-      " 75%), linear-gradient(45deg, " + exportAccent +
-
-      " 25%, transparent 25%, transparent 75%, " + exportAccent + " 75%)",
-
-    "important"
-
-  );
-
-  clone.style.setProperty("background-size", "64px 64px", "important");
-
-  clone.style.setProperty("background-position", "0 0, 32px 32px", "important");
-
-} else if (patternClass === "p2") {
-
-  /* Polka dots */
-
-  clone.style.setProperty(
-
-    "background-image",
-
-    "radial-gradient(circle, " + exportAccent + " 3px, transparent 3.5px)",
-
-    "important"
-
-  );
-
-  clone.style.setProperty("background-size", "30px 30px", "important");
-
-} else if (patternClass === "p3") {
-
-  /* Stripes */
-
-  clone.style.setProperty(
-
-    "background-image",
-
-    "repeating-linear-gradient(0deg, " + exportBg +
-
-      " 0 12px, " + exportAccent + " 12px 24px)",
-
-    "important"
-
-  );
-
-  clone.style.setProperty("background-size", "auto", "important");
-
+if (patternClass) {
+  var patternURL = makePatternTile(patternClass, exportBg, exportAccent);
+  var patternSize = patternClass === "p1" ? "64px 64px" : (patternClass === "p2" ? "30px 30px" : "24px 24px");
+  clone.style.setProperty("background-image", 'url("' + patternURL + '")', "important");
+  clone.style.setProperty("background-size", patternSize, "important");
+  clone.style.setProperty("background-repeat", "repeat", "important");
+  clone.style.setProperty("background-position", "0 0", "important");
 }
 
 /* Match the preview tab typography and fit the full label in each tab. */
@@ -1316,8 +1255,6 @@ async function generatePNG() {
 
     clone.style.top = "auto";
 
-    prepareCloneForCanvas(clone);
-
     stage.setAttribute("aria-hidden", "true");
 
     stage.style.cssText =
@@ -1333,6 +1270,8 @@ async function generatePNG() {
     stage.appendChild(clone);
 
     document.body.appendChild(stage);
+
+    prepareCloneForCanvas(clone);
 
     if (document.fonts && document.fonts.ready) {
 
