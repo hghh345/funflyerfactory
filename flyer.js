@@ -218,7 +218,16 @@ function applyT(id) {
 
   el.style.scale = String(t.s);
   if (["oHead", "oSub", "oBody", "oWhen"].indexOf(id) !== -1) {
-    el.style.textAlign = t.a || "center";
+    var alignment = t.a || "center";
+    el.style.textAlign = alignment;
+    if (id === "oSub") {
+      el.style.alignSelf = alignment === "left" ? "flex-start" : (alignment === "right" ? "flex-end" : "center");
+      el.style.marginLeft = alignment === "left" ? "0" : "";
+      el.style.marginRight = alignment === "right" ? "0" : "";
+    } else {
+      el.style.width = "100%";
+      el.style.alignSelf = "stretch";
+    }
   }
 
 }
@@ -506,6 +515,7 @@ function select(id) {
 
   if (!id) {
 
+    g("align").disabled = true;
     g("selName").textContent =
 
       "Nothing selected. Click something on the flyer.";
@@ -526,6 +536,7 @@ function select(id) {
 
     });
 
+    g("align").disabled = true;
     g("selName").textContent =
 
       "Nothing selected. Click something on the flyer.";
@@ -545,7 +556,9 @@ function select(id) {
   g("rot").value = T[id].r;
 
   g("siz").value = Math.round(T[id].s * 100);
-  if (alignable) g("align").value = T[id].a || "center";
+  var canAlign = ["oHead", "oSub", "oBody", "oWhen"].indexOf(id) !== -1;
+  g("align").disabled = !canAlign;
+  if (canAlign) g("align").value = T[id].a || "center";
 
   g("selName").textContent = NAMES[id] || "Item";
 
@@ -796,115 +809,89 @@ g("nopic").addEventListener("click", function () {
 });
 
 function makeDraggable(el) {
-
   if (!el) return;
-
   el.setAttribute("data-d", "1");
+  var pointers = Object.create(null);
+  var gesture = null;
+
+  function distance(a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  function pointList() {
+    return Object.keys(pointers).map(function (key) { return pointers[key]; });
+  }
+  function resetGesture() {
+    var pts = pointList();
+    if (!pts.length || !T[el.id]) { gesture = null; return; }
+    if (pts.length >= 2) {
+      gesture = {
+        mode: "pinch",
+        distance: Math.max(1, distance(pts[0], pts[1])),
+        scale: T[el.id].s,
+        x: T[el.id].x,
+        y: T[el.id].y
+      };
+    } else {
+      gesture = {
+        mode: "drag",
+        pointerId: pts[0].id,
+        px: pts[0].x,
+        py: pts[0].y,
+        x: T[el.id].x,
+        y: T[el.id].y
+      };
+    }
+  }
 
   el.addEventListener("pointerdown", function (event) {
-
     if (event.button !== undefined && event.button !== 0) return;
-
-    if (el.hidden) return;
-
+    if (el.hidden || !fl.contains(el)) return;
     var id = el.id;
-
-    if (!T[id]) {
-
-      T[id] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
-
-    }
-
+    if (!T[id]) T[id] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
     select(id);
-
-    var start = {
-
-      id: id,
-
-      pointerId: event.pointerId,
-
-      px: event.clientX,
-
-      py: event.clientY,
-
-      x: T[id].x,
-
-      y: T[id].y
-
-    };
-
-    try {
-
-      el.setPointerCapture(event.pointerId);
-
-    } catch (_) {}
-
-    /* Touch pinch-resize: two fingers on the selected element scale it. */
-    if (!el._pinchState) {
-      el._pinchState = { touches: [], startDistance: 0, startScale: 1 };
-      el.addEventListener("touchstart", function (ev) {
-        if (ev.touches.length < 2) return;
-        var a = ev.touches[0], b = ev.touches[1];
-        var dx = b.clientX - a.clientX, dy = b.clientY - a.clientY;
-        el._pinchState.startDistance = Math.max(1, Math.sqrt(dx*dx + dy*dy));
-        el._pinchState.startScale = (T[el.id] && T[el.id].s) || 1;
-        ev.preventDefault();
-      }, { passive: false });
-      el.addEventListener("touchmove", function (ev) {
-        if (ev.touches.length < 2 || !T[el.id]) return;
-        var a = ev.touches[0], b = ev.touches[1];
-        var dx = b.clientX - a.clientX, dy = b.clientY - a.clientY;
-        var distance = Math.sqrt(dx*dx + dy*dy);
-        T[el.id].s = Math.max(0.3, Math.min(3, el._pinchState.startScale * distance / el._pinchState.startDistance));
-        select(el.id);
-        applyT(el.id);
-        g("siz").value = Math.round(T[el.id].s * 100);
-        ev.preventDefault();
-      }, { passive: false });
-    }
-
-    function move(e) {
-
-      if (e.pointerId !== start.pointerId) return;
-
-      var unit = fl.getBoundingClientRect().width / 100;
-
-      if (!unit) return;
-
-      T[id].x = start.x + (e.clientX - start.px) / unit;
-
-      T[id].y = start.y + (e.clientY - start.py) / unit;
-
-      applyT(id);
-
-      e.preventDefault();
-
-    }
-
-    function end(e) {
-
-      if (e.pointerId !== start.pointerId) return;
-
-      el.removeEventListener("pointermove", move);
-
-      el.removeEventListener("pointerup", end);
-
-      el.removeEventListener("pointercancel", end);
-
-    }
-
-    el.addEventListener("pointermove", move);
-
-    el.addEventListener("pointerup", end);
-
-    el.addEventListener("pointercancel", end);
-
+    pointers[event.pointerId] = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    try { el.setPointerCapture(event.pointerId); } catch (_) {}
+    resetGesture();
     event.preventDefault();
-
     event.stopPropagation();
-
   });
 
+  el.addEventListener("pointermove", function (event) {
+    if (!pointers[event.pointerId] || !gesture || !T[el.id]) return;
+    pointers[event.pointerId].x = event.clientX;
+    pointers[event.pointerId].y = event.clientY;
+    var pts = pointList();
+    var unit = fl.getBoundingClientRect().width / 100;
+    if (!unit) return;
+
+    if (pts.length >= 2) {
+      if (gesture.mode !== "pinch") resetGesture();
+      if (gesture && gesture.mode === "pinch") {
+        var d = distance(pts[0], pts[1]);
+        T[el.id].s = Math.max(0.3, Math.min(3, gesture.scale * d / gesture.distance));
+        T[el.id].x = gesture.x;
+        T[el.id].y = gesture.y;
+        g("siz").value = Math.round(T[el.id].s * 100);
+        applyT(el.id);
+      }
+    } else if (gesture.mode === "drag" && gesture.pointerId === event.pointerId) {
+      T[el.id].x = gesture.x + (event.clientX - gesture.px) / unit;
+      T[el.id].y = gesture.y + (event.clientY - gesture.py) / unit;
+      applyT(el.id);
+    }
+    event.preventDefault();
+  });
+
+  function endPointer(event) {
+    if (!pointers[event.pointerId]) return;
+    delete pointers[event.pointerId];
+    if (Object.keys(pointers).length) resetGesture();
+    else gesture = null;
+  }
+  el.addEventListener("pointerup", endPointer);
+  el.addEventListener("pointercancel", endPointer);
+  el.addEventListener("lostpointercapture", endPointer);
 }
 
 Object.keys(NAMES).forEach(function (id) {
