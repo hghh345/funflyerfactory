@@ -41,7 +41,7 @@
         <summary>Words</summary>
         <div class="secbody">
           <label>Big headline<input type="text" id="head" maxlength="30"></label>
-          <label>Sticker (leave empty for none)<input type="text" id="burst" maxlength="14"></label>
+          <input type="hidden" id="burst" value="">
           <label>Subheading<input type="text" id="sub" maxlength="40"></label>
           <label>Details<textarea id="body" rows="3" maxlength="140"></textarea></label>
           <label>When and where<textarea id="when" rows="2" maxlength="80"></textarea></label>
@@ -56,6 +56,7 @@
           <div id="selName" aria-live="polite">Nothing selected. Click something on the flyer.</div>
           <label>Rotate<input type="range" id="rot" min="-180" max="180" value="0" disabled></label>
           <label>Size<input type="range" id="siz" min="30" max="300" value="100" disabled></label>
+          <label>Text alignment<select id="align" disabled><option value="left">Left</option><option value="center" selected>Middle</option><option value="right">Right</option></select></label>
           <button id="rst" type="button" disabled>Reset item</button>
           <button id="del" type="button" disabled>Delete item</button>
           <p class="hint">Drag anything on the flyer to move it. Select an item to rotate, resize, or delete it.</p>
@@ -104,6 +105,7 @@
         <button id="print" type="button">Print flyer</button>
       </div>
       <p class="hint" id="msg" role="status" aria-live="polite">Make your flyer, then generate a finished PNG to download or print.</p>
+      <p class="hint" id="screenshotHint">If the finished flyer doesn’t render properly, take a screenshot of the preview instead.</p>
       <img id="outimg" alt="Preview of your generated flyer" hidden>
     </div>
 
@@ -116,7 +118,7 @@
           <div class="dings" id="oDg"></div>
           <p class="bodytxt" id="oBody"></p>
           <p class="when" id="oWhen"></p>
-          <div class="burst" id="oBurst"></div>
+          <div class="burst" id="oBurst" aria-hidden="true"></div>
         </div>
         <div class="tabs" id="oTabs"></div>
       </div>

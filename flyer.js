@@ -8,7 +8,7 @@ var P = {
 
   show: {
 
-    head: "BASEMENT SHOW!!!", burst: "ALL AGES",
+    head: "BASEMENT SHOW!!!",
 
     sub: "3 bands. $5. Bring a friend.",
 
@@ -24,7 +24,7 @@ var P = {
 
   cat: {
 
-    head: "HAVE YOU SEEN MITTENS?", burst: "REWARD",
+    head: "HAVE YOU SEEN MITTENS?",
 
     sub: "Orange cat. Very chatty.",
 
@@ -40,7 +40,7 @@ var P = {
 
   sale: {
 
-    head: "HUGE YARD SALE", burst: "CHEAP!",
+    head: "HUGE YARD SALE",
 
     sub: "Everything must go",
 
@@ -56,7 +56,7 @@ var P = {
 
   party: {
 
-    head: "DANCE PARTY", burst: "FREE ENTRY",
+    head: "DANCE PARTY",
 
     sub: "Wear something shiny",
 
@@ -98,7 +98,7 @@ var C = [
 
 var IDS = [
 
-  "head", "burst", "sub", "body", "when", "tab",
+  "head", "burst", "sub", "body", "when", "tab", "align",
 
   "wa", "font", "col", "pat", "bd", "dg",
 
@@ -170,7 +170,6 @@ var NAMES = {
 
   oWhen: "When and where",
 
-  oBurst: "Sticker",
 
   oTabs: "Tear-off tabs"
 
@@ -180,7 +179,6 @@ var INPUT_TO_ITEM = {
 
   head: "oHead",
 
-  burst: "oBurst",
 
   sub: "oSub",
 
@@ -200,7 +198,7 @@ function resetTransforms() {
 
   Object.keys(NAMES).forEach(function (id) {
 
-    T[id] = { x: 0, y: 0, r: 0, s: 1 };
+    T[id] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
 
   });
 
@@ -219,6 +217,9 @@ function applyT(id) {
   el.style.rotate = t.r + "deg";
 
   el.style.scale = String(t.s);
+  if (["oHead", "oSub", "oBody", "oWhen"].indexOf(id) !== -1) {
+    el.style.textAlign = t.a || "center";
+  }
 
 }
 
@@ -402,11 +403,8 @@ function draw() {
 
   g("oDg").textContent = E.dg.value;
 
-  g("oBurst").textContent = E.burst.value;
-
-  g("oBurst").style.display =
-
-    E.burst.value ? "flex" : "none";
+  g("oBurst").textContent = "";
+  g("oBurst").style.display = "none";
 
   var tabs = g("oTabs");
 
@@ -540,13 +538,14 @@ function select(id) {
 
   if (!T[id]) {
 
-    T[id] = { x: 0, y: 0, r: 0, s: 1 };
+    T[id] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
 
   }
 
   g("rot").value = T[id].r;
 
   g("siz").value = Math.round(T[id].s * 100);
+  if (alignable) g("align").value = T[id].a || "center";
 
   g("selName").textContent = NAMES[id] || "Item";
 
@@ -642,11 +641,17 @@ g("siz").addEventListener("input", function () {
 
 });
 
+g("align").addEventListener("change", function () {
+  if (!sel || !T[sel] || ["oHead", "oSub", "oBody", "oWhen"].indexOf(sel) === -1) return;
+  T[sel].a = this.value;
+  applyT(sel);
+});
+
 g("rst").addEventListener("click", function () {
 
   if (!sel) return;
 
-  T[sel] = { x: 0, y: 0, r: 0, s: 1 };
+  T[sel] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
 
   applyT(sel);
 
@@ -806,7 +811,7 @@ function makeDraggable(el) {
 
     if (!T[id]) {
 
-      T[id] = { x: 0, y: 0, r: 0, s: 1 };
+      T[id] = { x: 0, y: 0, r: 0, s: 1, a: "center" };
 
     }
 
@@ -833,6 +838,30 @@ function makeDraggable(el) {
       el.setPointerCapture(event.pointerId);
 
     } catch (_) {}
+
+    /* Touch pinch-resize: two fingers on the selected element scale it. */
+    if (!el._pinchState) {
+      el._pinchState = { touches: [], startDistance: 0, startScale: 1 };
+      el.addEventListener("touchstart", function (ev) {
+        if (ev.touches.length < 2) return;
+        var a = ev.touches[0], b = ev.touches[1];
+        var dx = b.clientX - a.clientX, dy = b.clientY - a.clientY;
+        el._pinchState.startDistance = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+        el._pinchState.startScale = (T[el.id] && T[el.id].s) || 1;
+        ev.preventDefault();
+      }, { passive: false });
+      el.addEventListener("touchmove", function (ev) {
+        if (ev.touches.length < 2 || !T[el.id]) return;
+        var a = ev.touches[0], b = ev.touches[1];
+        var dx = b.clientX - a.clientX, dy = b.clientY - a.clientY;
+        var distance = Math.sqrt(dx*dx + dy*dy);
+        T[el.id].s = Math.max(0.3, Math.min(3, el._pinchState.startScale * distance / el._pinchState.startDistance));
+        select(el.id);
+        applyT(el.id);
+        g("siz").value = Math.round(T[el.id].s * 100);
+        ev.preventDefault();
+      }, { passive: false });
+    }
 
     function move(e) {
 
@@ -883,6 +912,7 @@ Object.keys(NAMES).forEach(function (id) {
   makeDraggable(g(id));
 
 });
+if (g("oBurst")) g("oBurst").style.display = "none";
 
 fl.addEventListener("pointerdown", function (event) {
 
@@ -1090,64 +1120,6 @@ if (headline && palettes[styleIndex]) {
 
   });
 
-}
-
-/* Make the burst shape export reliably at the actual mobile/desktop size. */
-var burst = clone.querySelector("#oBurst");
-
-if (burst && burst.textContent.trim()) {
-  var burstText = burst.textContent.trim();
-  var burstStyle = window.getComputedStyle(burst);
-  var burstRect = burst.getBoundingClientRect();
-  var burstWidth = Math.max(1, burstRect.width || parseFloat(burstStyle.width) || 120);
-  var burstHeight = Math.max(1, burstRect.height || parseFloat(burstStyle.height) || 120);
-  var accent = getComputedStyle(fl).getPropertyValue("--ac").trim() || "#ff1493";
-  var points = [];
-
-  for (var i = 0; i < 32; i++) {
-    var angle = i * Math.PI / 16;
-    var radius = i % 2 ? 38 : 50;
-    points.push(
-      (50 + radius * Math.sin(angle)).toFixed(1) + "," +
-      (50 - radius * Math.cos(angle)).toFixed(1)
-    );
-  }
-
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">' +
-    '<polygon points="' + points.join(" ") + '" fill="' + accent + '"/></svg>';
-  var shape = document.createElement("img");
-  shape.alt = "";
-  shape.setAttribute("aria-hidden", "true");
-  shape.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  shape.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;object-fit:fill;";
-
-  var label = document.createElement("span");
-  label.textContent = burstText;
-  label.style.cssText = "position:absolute;left:0;top:0;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;padding:8%;text-align:center;overflow-wrap:anywhere;word-break:normal;";
-  label.style.fontFamily = burstStyle.fontFamily;
-  label.style.fontSize = burstStyle.fontSize;
-  label.style.fontWeight = burstStyle.fontWeight;
-  label.style.fontStyle = burstStyle.fontStyle;
-  label.style.lineHeight = burstStyle.lineHeight;
-  label.style.letterSpacing = burstStyle.letterSpacing;
-  label.style.textTransform = burstStyle.textTransform;
-  label.style.color = burstStyle.color;
-  label.style.textShadow = burstStyle.textShadow;
-  label.style.webkitTextStroke = burstStyle.webkitTextStroke || "";
-
-  burst.textContent = "";
-  burst.appendChild(shape);
-  burst.appendChild(label);
-  burst.style.setProperty("position", "absolute", "important");
-  burst.style.setProperty("width", burstWidth + "px", "important");
-  burst.style.setProperty("height", burstHeight + "px", "important");
-  burst.style.setProperty("min-width", burstWidth + "px", "important");
-  burst.style.setProperty("min-height", burstHeight + "px", "important");
-  burst.style.setProperty("box-sizing", "border-box", "important");
-  burst.style.setProperty("background", "transparent", "important");
-  burst.style.setProperty("clip-path", "none", "important");
-  burst.style.setProperty("-webkit-clip-path", "none", "important");
-  burst.style.setProperty("overflow", "visible", "important");
 }
 
 /* Use real PNG tiles for patterns: html2canvas can drop CSS gradients. */
@@ -1409,6 +1381,11 @@ bwContext.putImageData(pixels, 0, 0);
     g("exportOptions").hidden = false;
 
     say("Your flyer is ready! Download the PNG or print it below.");
+    if (window.matchMedia("(max-width: 660px)").matches) {
+      setTimeout(function () {
+        g("outimg").scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 120);
+    }
 
   } catch (error) {
 
@@ -1440,6 +1417,10 @@ bwContext.putImageData(pixels, 0, 0);
 
 }
 
+/* Keep the mobile editor compact; desktop sections retain their current presentation. */
+if (window.matchMedia("(max-width: 660px)").matches) {
+  document.querySelectorAll("details.sec").forEach(function (section) { section.open = false; });
+}
 g("generate").addEventListener("click", generatePNG);
 
 g("download").addEventListener("click", function () {
