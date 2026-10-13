@@ -735,56 +735,54 @@ function prepareCloneForCanvas(clone) {
 
   /* Rebuild flyer patterns with pixel-based sizing for export. */
   
-var flyerStyle = getComputedStyle(fl);
-var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
-var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
 
-var patternClass = ["p1", "p2", "p3"].find(function (name) {
-  return clone.classList.contains(name);
-});
+  /* Rebuild flyer patterns for export. */
+  var flyerStyle = getComputedStyle(fl);
+  var exportBg = flyerStyle.getPropertyValue("--bg").trim() || "#fff200";
+  var exportAccent = flyerStyle.getPropertyValue("--ac").trim() || "#ff1493";
 
-clone.style.setProperty("background-color", exportBg, "important");
-clone.style.setProperty("background-image", "none", "important");
-clone.style.setProperty("background-size", "64px 64px", "important");
-clone.style.setProperty("background-position", "0 0", "important");
-clone.style.setProperty("background-repeat", "repeat", "important");
+  var patternClass = ["p1", "p2", "p3"].find(function (name) {
+    return clone.classList.contains(name);
+  });
 
-if (patternClass === "p1") {
-  // Larger checkerboard
-  clone.style.setProperty(
-    "background-image",
-    "linear-gradient(45deg, " + exportAccent +
-      " 25%, transparent 25%, transparent 75%, " +
-      exportAccent + " 75%)," +
-    "linear-gradient(45deg, " + exportAccent +
-      " 25%, transparent 25%, transparent 75%, " +
-      exportAccent + " 75%)",
-    "important"
-  );
-  clone.style.setProperty("background-size", "64px 64px", "important");
-  clone.style.setProperty("background-position", "0 0, 32px 32px", "important");
-
-} else if (patternClass === "p2") {
-  // Polka dots
-  clone.style.setProperty(
-    "background-image",
-    "radial-gradient(circle, " + exportAccent + " 3px, transparent 3.5px)",
-    "important"
-  );
-  clone.style.setProperty("background-size", "30px 30px", "important");
+  clone.style.setProperty("background-color", exportBg, "important");
+  clone.style.setProperty("background-image", "none", "important");
+  clone.style.setProperty("background-repeat", "repeat", "important");
   clone.style.setProperty("background-position", "0 0", "important");
 
-} else if (patternClass === "p3") {
-  // Bold stripes
-  clone.style.setProperty(
-    "background-image",
-    "repeating-linear-gradient(90deg, " + exportBg +
-      " 0 24px, " + exportAccent + " 24px 48px)",
-    "important"
-  );
-  clone.style.setProperty("background-size", "auto", "important");
-  clone.style.setProperty("background-position", "0 0", "important");
-}
+  if (patternClass === "p1") {
+    /* Checkerboard */
+    clone.style.setProperty(
+      "background-image",
+      "linear-gradient(45deg, " + exportAccent +
+        " 25%, transparent 25%, transparent 75%, " + exportAccent +
+        " 75%), linear-gradient(45deg, " + exportAccent +
+        " 25%, transparent 25%, transparent 75%, " + exportAccent + " 75%)",
+      "important"
+    );
+    clone.style.setProperty("background-size", "64px 64px", "important");
+    clone.style.setProperty("background-position", "0 0, 32px 32px", "important");
+
+  } else if (patternClass === "p2") {
+    /* Polka dots */
+    clone.style.setProperty(
+      "background-image",
+      "radial-gradient(circle, " + exportAccent + " 3px, transparent 3.5px)",
+      "important"
+    );
+    clone.style.setProperty("background-size", "30px 30px", "important");
+
+  } else if (patternClass === "p3") {
+    /* Stripes */
+    clone.style.setProperty(
+      "background-image",
+      "repeating-linear-gradient(0deg, " + exportBg +
+        " 0 12px, " + exportAccent + " 12px 24px)",
+      "important"
+    );
+    clone.style.setProperty("background-size", "auto", "important");
+  }
+
 
 
   /* Fix tear-off tabs: keep text upright in the tabs,
