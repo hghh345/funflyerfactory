@@ -6,6 +6,12 @@
 
 var P = {
 
+  blank: {
+    head: "", sub: "", body: "", when: "", tab: "",
+    wa: "0", font: "4", col: "2", pat: "0", bd: "0", dg: "",
+    sz: "0", tabs: false, shape: "0", bw: false
+  },
+
   show: {
 
     head: "BASEMENT SHOW!!!",
@@ -570,9 +576,19 @@ function load(key) {
 
   if (!preset) return;
 
+  if (key === "blank") {
+    pic = "";
+    g("file").value = "";
+    g("oPic").removeAttribute("src");
+  }
+
+  if (key !== "blank" && preset.tabs === undefined) E.tabs.checked = true;
+
   Object.keys(preset).forEach(function (id) {
 
-    if (E[id]) E[id].value = preset[id];
+    if (!E[id]) return;
+    if (E[id].type === "checkbox") E[id].checked = !!preset[id];
+    else E[id].value = preset[id];
 
   });
 
@@ -1625,6 +1641,26 @@ if (mq.addEventListener) {
   mq.addListener(mqChange);
 
 }
+
+function showView(view) {
+  var isAbout = view === "about";
+  g("makerView").hidden = isAbout;
+  g("aboutView").hidden = !isAbout;
+  g("navMake").classList.toggle("nav-active", !isAbout);
+  g("navAbout").classList.toggle("nav-active", isAbout);
+  if (isAbout) {
+    g("navAbout").setAttribute("aria-current", "page");
+    g("navMake").removeAttribute("aria-current");
+  } else {
+    g("navMake").setAttribute("aria-current", "page");
+    g("navAbout").removeAttribute("aria-current");
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+g("navMake").addEventListener("click", function () { showView("make"); });
+g("navAbout").addEventListener("click", function () { showView("about"); });
+g("aboutMake").addEventListener("click", function () { showView("make"); });
 
 resetTransforms();
 

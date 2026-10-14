@@ -58,3 +58,19 @@ details.sec{margin:0 0 8px;border:1px solid var(--edge)}details.sec>summary{disp
 #screenshotHint{margin-top:4px}
 [data-d]{touch-action:none}
 @media(max-width:660px){details.sec:not([open])>.secbody{display:none}.actionbar{scroll-margin-bottom:12px}}
+
+/* Main site navigation and About page */
+.site-nav{display:flex;gap:5px;flex-wrap:wrap;padding:8px 10px 0;border-bottom:1px solid var(--edge)}
+.site-nav button{margin:0 0 -1px;border-bottom-left-radius:0;border-bottom-right-radius:0;font-weight:bold}
+.site-nav button.nav-active{background:var(--panel);border-bottom-color:var(--panel);position:relative;z-index:1}
+.about-view{padding:16px;max-width:780px;margin:0 auto}
+.about-paper{background:#fffef6;color:#111;border:2px solid #111;padding:clamp(18px,4vw,38px);box-shadow:5px 5px 0 #111;position:relative}
+.about-kicker{font:bold 11px/1.4 'Courier New',monospace;letter-spacing:1px;text-transform:uppercase;margin:0 0 18px}
+.about-paper h1{font:900 clamp(30px,6vw,58px)/.94 Impact,'Arial Black',sans-serif;letter-spacing:-.5px;margin:0 0 20px;text-transform:uppercase;max-width:650px}
+.about-paper .about-lede{font:bold clamp(18px,3vw,24px)/1.2 'Comic Neue','Comic Sans MS',sans-serif;margin:0 0 18px}
+.about-paper p{max-width:620px;font-size:15px;line-height:1.6}
+.about-paper h2{font:900 25px/1 Impact,'Arial Black',sans-serif;margin:28px 0 12px}
+.about-stamp{display:inline-block;border:3px solid #ff1493;color:#d00068;padding:8px 10px;font:bold 13px/1.2 Impact,'Arial Black',sans-serif;transform:rotate(-2deg);margin:18px 0}
+.about-paper .about-signoff{font-family:'Courier New',monospace;font-weight:bold;margin-top:16px}
+.about-paper button{margin-top:10px;background:#ffef35;border:2px solid #111;box-shadow:3px 3px 0 #111;font-weight:bold;padding:9px 12px}
+@media(max-width:660px){.site-nav{padding:8px 8px 0}.site-nav button{flex:1}.about-view{padding:12px}.about-paper{padding:20px 16px}.about-paper p{font-size:14px}}

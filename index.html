@@ -14,11 +14,16 @@
 <div class="win">
   <div class="title"><span>funflyerfactory</span><i>_ ▫ x</i></div>
   <div class="marq"><div>use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers! &#9733; use your imagination, create something unique, fuck ai flyers!</div></div>
+  <nav class="site-nav" aria-label="Main navigation">
+    <button type="button" id="navMake" class="nav-active" aria-current="page">MAKE A FLYER</button>
+    <button type="button" id="navAbout">ABOUT</button>
+  </nav>
 
-  <div class="wrap">
+  <div class="wrap" id="makerView">
     <div class="top">
       <fieldset>
         <legend>Start from</legend>
+        <button type="button" data-t="blank">Blank canvas</button>
         <button type="button" data-t="show">Basement show</button>
         <button type="button" data-t="cat">Lost cat</button>
         <button type="button" data-t="sale">Yard sale</button>
@@ -123,6 +128,21 @@
       </div>
     </div>
   </div>
+  <section class="about-view" id="aboutView" hidden aria-labelledby="aboutTitle">
+    <div class="about-paper">
+      <p class="about-kicker">A SMALL INTERNET THING BY A HUMAN</p>
+      <h1 id="aboutTitle">THE INTERNET DOESN'T NEED MORE UGLY FLYERS.</h1>
+      <p class="about-lede">AI flyers are ugly. And lazy. And somehow they all look the same.</p>
+      <p>Give me a simple, stupid flyer taped to a lamppost over another deep-fried AI graphic any day. Give me bad fonts, too many stars, a weird little announcement, and the evidence that an actual person made a choice.</p>
+      <p>This isn't a finger-wag about every complicated thing we do or what makes us good or bad people. It's a tiny, practical contribution to being part of the solution instead of just complaining about the problem.</p>
+      <h2>MAKE SOMETHING YOURSELF.</h2>
+      <p>FunFlyerFactory is a free little tool for making flyers with your own words, your own taste, and as many questionable design decisions as you want. Start with a template or start with a blank page. Make something for your party, your band, your lost cat, your strange idea, or absolutely no reason at all.</p>
+      <p>It doesn't have to be good. It just has to be yours.</p>
+      <div class="about-stamp">NO AI. NO DESIGN DEGREE. NO TASTE POLICE.</div>
+      <p class="about-signoff">Made as an alternative to the stuff I don't want more of in the world. Now go make a flyer.</p>
+      <button type="button" id="aboutMake">OK FINE, LET'S MAKE A FLYER</button>
+    </div>
+  </section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
