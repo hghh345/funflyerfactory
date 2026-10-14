@@ -1658,6 +1658,10 @@ function showView(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// Expose the two page actions for the small navigation fallback in index.html.
+window.funflyerLoadTemplate = load;
+window.funflyerShowView = showView;
+
 g("navMake").addEventListener("click", function () { showView("make"); });
 g("navAbout").addEventListener("click", function () { showView("about"); });
 g("aboutMake").addEventListener("click", function () { showView("make"); });
