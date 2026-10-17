@@ -20,7 +20,7 @@
     <button type="button" id="navAbout">ABOUT</button>
     <button type="button" id="navShop">SHOP</button>
   </nav>
-  
+
 <paypal-cart-button data-id="pp-view-cart"></paypal-cart-button>
 <script>
   cartPaypal.Cart({ id: "pp-view-cart" });
@@ -172,13 +172,10 @@
       <p class="shop-price">€35</p>
       <div id="shirtBuyButton">
 <div>
-  <style>.pp-T43UH9Y7KGFY6{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
-  <form action="https://www.paypal.com/ncp/payment/T43UH9Y7KGFY6" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-    <input class="pp-T43UH9Y7KGFY6" type="submit" value="Buy Now" />
-    <img src=https://www.paypalobjects.com/images/Debit_Credit_APM.svg alt="cards" />
-    <section style="font-size: 0.75rem;"> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
-  </form>
-</div>      </div>
+  <paypal-add-to-cart-button data-id="BVAB9ARD2XQBE"></paypal-add-to-cart-button>
+<script>
+  cartPaypal.AddToCart({ id: "BVAB9ARD2XQBE" });
+</script>   </div>
     </article>
 
     <article class="shop-item">
@@ -190,8 +187,10 @@
       <p>Only 2 available.</p>
       <p class="shop-price">€45</p>
       <div id="bagBuyButton">
-        <!-- Add your PayPal button code here later -->
-      </div>
+<paypal-add-to-cart-button data-id="JGYHT9CCRTQ72"></paypal-add-to-cart-button>
+<script>
+  cartPaypal.AddToCart({ id: "JGYHT9CCRTQ72" })
+</script>      </div>
     </article>
   </div>
 </section>
