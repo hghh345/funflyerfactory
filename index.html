@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="flyer.css">
+  <script src="https://www.paypalobjects.com/ncp/cart/cart.js" data-merchant-id="764W8JXVAUK2Y"></script>
 </head>
 <body>
 <div class="win">
@@ -18,8 +19,12 @@
     <button type="button" id="navMake" class="nav-active" aria-current="page">MAKE A FLYER</button>
     <button type="button" id="navAbout">ABOUT</button>
     <button type="button" id="navShop">SHOP</button>
-
   </nav>
+  
+<paypal-cart-button data-id="pp-view-cart"></paypal-cart-button>
+<script>
+  cartPaypal.Cart({ id: "pp-view-cart" });
+</script>
 
   <div class="wrap" id="makerView">
     <div class="top">
