@@ -1643,20 +1643,40 @@ if (mq.addEventListener) {
 }
 
 function showView(view) {
-  var isAbout = view === "about";
-  g("makerView").hidden = isAbout;
-  g("aboutView").hidden = !isAbout;
-  g("navMake").classList.toggle("nav-active", !isAbout);
-  g("navAbout").classList.toggle("nav-active", isAbout);
-  if (isAbout) {
-    g("navAbout").setAttribute("aria-current", "page");
-    g("navMake").removeAttribute("aria-current");
-  } else {
-    g("navMake").setAttribute("aria-current", "page");
-    g("navAbout").removeAttribute("aria-current");
-  }
+  var views = {
+    make: g("makerView"),
+    about: g("aboutView"),
+    shop: g("shopView")
+  };
+
+  Object.keys(views).forEach(function (key) {
+    if (views[key]) {
+      views[key].hidden = key !== view;
+    }
+  });
+
+  var navButtons = {
+    make: g("navMake"),
+    about: g("navAbout"),
+    shop: g("navShop")
+  };
+
+  Object.keys(navButtons).forEach(function (key) {
+    var button = navButtons[key];
+    if (!button) return;
+
+    button.classList.toggle("nav-active", key === view);
+
+    if (key === view) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 
 // Expose the two page actions for the small navigation fallback in index.html.
 window.funflyerLoadTemplate = load;
