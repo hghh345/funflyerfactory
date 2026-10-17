@@ -21,7 +21,9 @@
     <button type="button" id="navShop">SHOP</button>
   </nav>
 
-<paypal-cart-button data-id="pp-view-cart"></paypal-cart-button>
+<div class="cart-corner">
+  <paypal-cart-button data-id="pp-view-cart"></paypal-cart-button>
+</div>
 <script>
   cartPaypal.Cart({ id: "pp-view-cart" });
 </script>
