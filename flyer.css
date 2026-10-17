@@ -113,3 +113,22 @@ details.sec{margin:0 0 8px;border:1px solid var(--edge)}details.sec>summary{disp
     grid-template-columns: 1fr;
   }
 }
+/* PayPal cart: top-right corner */
+.win {
+  position: relative;
+}
+
+.cart-corner {
+  position: absolute;
+  top: 38px;
+  right: 12px;
+  z-index: 100;
+}
+
+/* Keep the cart from crowding the navigation on small screens */
+@media (max-width: 600px) {
+  .cart-corner {
+    top: 38px;
+    right: 8px;
+  }
+}
