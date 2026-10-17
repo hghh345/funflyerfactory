@@ -1685,6 +1685,9 @@ window.funflyerShowView = showView;
 g("navMake").addEventListener("click", function () { showView("make"); });
 g("navAbout").addEventListener("click", function () { showView("about"); });
 g("aboutMake").addEventListener("click", function () { showView("make"); });
+g("navShop").addEventListener("click", function () {
+  showView("shop");
+});
 
 resetTransforms();
 
