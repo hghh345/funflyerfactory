@@ -74,3 +74,42 @@ details.sec{margin:0 0 8px;border:1px solid var(--edge)}details.sec>summary{disp
 .about-paper .about-signoff{font-family:'Courier New',monospace;font-weight:bold;margin-top:16px}
 .about-paper button{margin-top:10px;background:#ffef35;border:2px solid #111;box-shadow:3px 3px 0 #111;font-weight:bold;padding:9px 12px}
 @media(max-width:660px){.site-nav{padding:8px 8px 0}.site-nav button{flex:1}.about-view{padding:12px}.about-paper{padding:20px 16px}.about-paper p{font-size:14px}}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.shop-item {
+  border: 2px solid currentColor;
+  padding: 16px;
+  min-width: 0;
+}
+
+.shop-item h2 {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+
+.shop-image-placeholder {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  border: 1px dashed currentColor;
+  text-align: center;
+  padding: 16px;
+  font-size: 0.9rem;
+}
+
+.shop-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+}
