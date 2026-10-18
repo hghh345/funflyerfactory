@@ -1681,6 +1681,34 @@ function showView(view) {
 }
 
 
+var submissionToggle = g("toggleSubmission");
+var submissionForm = g("submissionForm");
+
+if (submissionToggle && submissionForm) {
+  submissionToggle.addEventListener("click", function () {
+    var opening = submissionForm.hidden;
+
+    submissionForm.hidden = !opening;
+    submissionToggle.setAttribute("aria-expanded", String(opening));
+
+    submissionToggle.textContent = opening
+      ? "CLOSE SUBMISSION FORM ✕"
+      : "SUBMIT YOUR FLYER!!!";
+
+    if (opening) {
+      var tallyFrame = submissionForm.querySelector("iframe");
+
+      if (tallyFrame && !tallyFrame.src) {
+        tallyFrame.src = tallyFrame.dataset.tallySrc;
+      }
+
+      if (window.Tally && window.Tally.loadEmbeds) {
+        window.Tally.loadEmbeds();
+      }
+    }
+  });
+}
+
 
 // Expose the two page actions for the small navigation fallback in index.html.
 window.funflyerLoadTemplate = load;
