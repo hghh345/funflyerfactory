@@ -1692,8 +1692,7 @@ g("aboutMake").addEventListener("click", function () { showView("make"); });
 g("navShop").addEventListener("click", function () {
   showView("shop");
   g("navBulletin").addEventListener("click", function () {
-  showView("bulletin");
-});
+  showView("bulletin");});
 });
 
 resetTransforms();
