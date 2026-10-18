@@ -1642,11 +1642,13 @@ if (mq.addEventListener) {
 
 }
 
+
 function showView(view) {
   var views = {
     make: g("makerView"),
     about: g("aboutView"),
-    shop: g("shopView")
+    shop: g("shopView"),
+    bulletin: g("bulletinView")
   };
 
   Object.keys(views).forEach(function (key) {
@@ -1658,7 +1660,8 @@ function showView(view) {
   var navButtons = {
     make: g("navMake"),
     about: g("navAbout"),
-    shop: g("navShop")
+    shop: g("navShop"),
+    bulletin: g("navBulletin")
   };
 
   Object.keys(navButtons).forEach(function (key) {
@@ -1678,6 +1681,7 @@ function showView(view) {
 }
 
 
+
 // Expose the two page actions for the small navigation fallback in index.html.
 window.funflyerLoadTemplate = load;
 window.funflyerShowView = showView;
@@ -1687,6 +1691,9 @@ g("navAbout").addEventListener("click", function () { showView("about"); });
 g("aboutMake").addEventListener("click", function () { showView("make"); });
 g("navShop").addEventListener("click", function () {
   showView("shop");
+  g("navBulletin").addEventListener("click", function () {
+  showView("bulletin");
+});
 });
 
 resetTransforms();
