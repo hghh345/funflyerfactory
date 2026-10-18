@@ -1182,8 +1182,6 @@ clone.querySelectorAll(".tab").forEach(function (tab) {
   tab.style.setProperty("writing-mode", "vertical-rl", "important");
   tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
   tab.style.setProperty("text-orientation", "mixed", "important");
-  tab.style.setProperty("transform", "rotate(180deg)", "important");
-  tab.style.setProperty("-webkit-transform", "rotate(180deg)", "important");
   tab.style.setProperty("box-sizing", "border-box", "important");
 });
 }
