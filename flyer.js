@@ -1179,7 +1179,8 @@ clone.querySelectorAll(".tab").forEach(function (tab) {
   tab.style.setProperty("font-size", tabFontSize + "cqw", "important");
   tab.style.setProperty("white-space", "nowrap", "important");
   tab.style.setProperty("overflow", "hidden", "important");
-
+  tab.style.setProperty("writing-mode", "vertical-rl", "important");
+  tab.style.setProperty("-webkit-writing-mode", "vertical-rl", "important");
   tab.style.setProperty("text-orientation", "mixed", "important");
 
   tab.style.setProperty("box-sizing", "border-box", "important");
